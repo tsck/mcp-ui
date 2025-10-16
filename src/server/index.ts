@@ -3,10 +3,9 @@ import cors from 'cors';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { CallToolResult, isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import { createUIResource } from '@mcp-ui/server';
 import { randomUUID } from 'crypto';
 import { mockData } from './mockData';
-import { augmentWithUi } from './twig';
+import { augmentWithUi } from './Twig';
 
 const app = express();
 const port = 3000;
@@ -14,7 +13,7 @@ const port = 3000;
 app.use(cors({
   origin: '*',
   exposedHeaders: ['Mcp-Session-Id'],
-  allowedHeaders: ['Content-Type', 'mcp-session-id'],
+  allowedHeaders: ['Content-Type', 'mcp-session-id', 'mcp-protocol-version'],
 }));
 app.use(express.json());
 
@@ -51,6 +50,19 @@ app.post('/mcp', async (req, res) => {
     const server = new McpServer({
       name: "typescript-server-walkthrough",
       version: "1.0.0"
+    });
+
+    server.registerTool('hello_world', {
+      title: 'Hello World',
+      description: 'A tool that returns a simple "Hello World" message.',
+      inputSchema: {},
+    }, async () => {
+      const result = {
+        content: [{ type: 'text', text: '' }],
+        uri: 'data://hello-world',
+      } as CallToolResult
+
+      return augmentWithUi(result);
     });
 
     // Register our MCP-UI tool on the new server instance.
