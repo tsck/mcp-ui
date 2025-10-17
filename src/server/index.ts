@@ -1,28 +1,33 @@
-import express from 'express';
-import cors from 'cors';
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
-import { CallToolResult, isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
-import { randomUUID } from 'crypto';
-import { mockData } from './mockData';
-import { augmentWithUi } from './Twig';
+import express from "express";
+import cors from "cors";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import {
+  CallToolResult,
+  isInitializeRequest,
+} from "@modelcontextprotocol/sdk/types.js";
+import { randomUUID } from "crypto";
+import { mockData } from "./mockData";
+import { augmentWithUi } from "./Twig";
 
 const app = express();
 const port = 3000;
 
-app.use(cors({
-  origin: '*',
-  exposedHeaders: ['Mcp-Session-Id'],
-  allowedHeaders: ['Content-Type', 'mcp-session-id', 'mcp-protocol-version'],
-}));
+app.use(
+  cors({
+    origin: "*",
+    exposedHeaders: ["Mcp-Session-Id"],
+    allowedHeaders: ["Content-Type", "mcp-session-id", "mcp-protocol-version"],
+  })
+);
 app.use(express.json());
 
 // Map to store transports by session ID
 const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
 
 // Handle POST requests for client-to-server communication.
-app.post('/mcp', async (req, res) => {
-  const sessionId = req.headers['mcp-session-id'] as string | undefined;
+app.post("/mcp", async (req, res) => {
+  const sessionId = req.headers["mcp-session-id"] as string | undefined;
   let transport: StreamableHTTPServerTransport;
 
   if (sessionId && transports[sessionId]) {
@@ -45,45 +50,52 @@ app.post('/mcp', async (req, res) => {
         delete transports[transport.sessionId];
       }
     };
-    
+
     // Create a new server instance for this specific session.
     const server = new McpServer({
       name: "typescript-server-walkthrough",
-      version: "1.0.0"
+      version: "1.0.0",
     });
 
-    server.registerTool('hello_world', {
-      title: 'Hello World',
-      description: 'A tool that returns a simple "Hello World" message.',
-      inputSchema: {},
-    }, async () => {
-      const result = {
-        content: [{ type: 'text', text: '' }],
-        uri: 'data://hello-world',
-      } as CallToolResult
+    server.registerTool(
+      "hello_world",
+      {
+        title: "Hello World",
+        description: 'A tool that returns a simple "Hello World" message.',
+        inputSchema: {},
+      },
+      async () => {
+        const result = {
+          content: [{ type: "text", text: "" }],
+          uri: "data://hello-world",
+        } as CallToolResult;
 
-      return augmentWithUi(result);
-    });
+        return augmentWithUi(result);
+      }
+    );
 
-    // Register our MCP-UI tool on the new server instance.
-    server.registerTool('cluster_metrics', {
-      title: 'Cluster Metrics',
-      description: 'A tool that returns a UI resource for cluster metrics.',
-      inputSchema: {},
-    }, async () => {
-      const result = {
-        content: [{ type: 'text', text: JSON.stringify(mockData) }],
-        uri: 'data://cluster-metrics',
-      } as CallToolResult
+    server.registerTool(
+      "cluster_metrics",
+      {
+        title: "Cluster Metrics",
+        description: "A tool that returns a UI resource for cluster metrics.",
+        inputSchema: {},
+      },
+      async () => {
+        const result = {
+          content: [{ type: "text", text: JSON.stringify(mockData) }],
+          uri: "data://cluster-metrics",
+        } as CallToolResult;
 
-      return augmentWithUi(result);
-    });
-  
+        return augmentWithUi(result);
+      }
+    );
+
     // Connect the server instance to the transport for this session.
     await server.connect(transport);
   } else {
     return res.status(400).json({
-      error: { message: 'Bad Request: No valid session ID provided' },
+      error: { message: "Bad Request: No valid session ID provided" },
     });
   }
 
@@ -92,21 +104,24 @@ app.post('/mcp', async (req, res) => {
 });
 
 // A separate, reusable handler for GET and DELETE requests.
-const handleSessionRequest = async (req: express.Request, res: express.Response) => {
-  const sessionId = req.headers['mcp-session-id'] as string | undefined;
+const handleSessionRequest = async (
+  req: express.Request,
+  res: express.Response
+) => {
+  const sessionId = req.headers["mcp-session-id"] as string | undefined;
   if (!sessionId || !transports[sessionId]) {
-    return res.status(404).send('Session not found');
+    return res.status(404).send("Session not found");
   }
-  
+
   const transport = transports[sessionId];
   await transport.handleRequest(req, res);
 };
 
 // GET handles the long-lived stream for server-to-client messages.
-app.get('/mcp', handleSessionRequest);
+app.get("/mcp", handleSessionRequest);
 
 // DELETE handles explicit session termination from the client.
-app.delete('/mcp', handleSessionRequest);
+app.delete("/mcp", handleSessionRequest);
 
 app.listen(port, () => {
   console.log(`Server listening at http://localhost:${port}`);

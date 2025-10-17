@@ -34,8 +34,6 @@ export const getSidebarStyle = (theme: Theme) => css`
 `;
 
 export const mainContentStyle = css`
-  /* display: grid;
-  grid-template-rows: 50% 50%; */
   width: 100%;
   padding: ${spacing[400]}px;
   display: flex;
