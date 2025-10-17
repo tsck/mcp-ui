@@ -1,7 +1,15 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { Chart, ChartGrid, ChartHeader, ChartTooltip, Line, XAxis, YAxis } from '@lg-charts/core';
-import './chart-styles.css';
+import React from "react";
+import { createRoot } from "react-dom/client";
+import {
+  Chart,
+  ChartGrid,
+  ChartHeader,
+  ChartTooltip,
+  Line,
+  XAxis,
+  YAxis,
+} from "@lg-charts/core";
+import "./chart-styles.css";
 
 interface ClusterMetrics {
   name: string;
@@ -34,4 +42,3 @@ window.renderChart = (containerId: string, data: Array<ClusterMetrics>) => {
     </Chart>
   );
 };
-
