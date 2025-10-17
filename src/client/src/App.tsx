@@ -1,49 +1,53 @@
 /** @jsxImportSource @emotion/react */
-import { useState } from 'react';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { ToolSelector } from './components/ToolSelector';
-import { ResponseDisplay } from './components/ResponseDisplay';
-import { UIRenderer } from './components/UIRenderer';
-import { mcpClient } from './services/mcpClient';
+import { useState } from "react";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { ToolNav } from "./components/ToolNav";
+import { ResponseDisplay } from "./components/ResponseDisplay";
+import { UIRenderer } from "./components/UIRenderer";
+import { mcpClient } from "./services/mcpClient";
+
 import {
-  appContainerStyles,
+  getAppContainerStyle,
   appLayoutStyle,
-  sidebarStyle,
   mainContentStyle,
   contentPanelStyle,
-} from './App.styles';
+} from "./App.styles";
+import { useDarkMode } from "@leafygreen-ui/leafygreen-provider";
 
 function App() {
   const [response, setResponse] = useState<CallToolResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { theme } = useDarkMode();
 
-  const handleToolCall = async (toolName: string, args?: Record<string, unknown>) => {
+  const handleToolCall = async (
+    toolName: string,
+    args?: Record<string, unknown>
+  ) => {
     try {
       setLoading(true);
       setError(null);
       const result = await mcpClient.callTool(toolName, args);
       setResponse(result);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to execute tool');
-      console.error('Error calling tool:', err);
+      setError(err instanceof Error ? err.message : "Failed to execute tool");
+      console.error("Error calling tool:", err);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div css={appContainerStyles}>
-      <header>
-        <h1>Twig Inspector</h1>
-      </header>
+    <div css={getAppContainerStyle(theme)}>
       <div css={appLayoutStyle}>
-        <aside css={sidebarStyle}>
-          <ToolSelector onToolCall={handleToolCall} />
-        </aside>
+        <ToolNav onToolCall={handleToolCall} />
         <main css={mainContentStyle}>
           <div css={contentPanelStyle}>
-            <ResponseDisplay response={response} loading={loading} error={error} />
+            <ResponseDisplay
+              response={response}
+              loading={loading}
+              error={error}
+            />
           </div>
           <div css={contentPanelStyle}>
             <UIRenderer response={response} />

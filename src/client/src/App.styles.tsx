@@ -1,10 +1,15 @@
 import { css } from '@emotion/react';
+import { color, fontFamilies, InteractionState, spacing, Variant } from '@leafygreen-ui/tokens';
+import type { Theme } from '@leafygreen-ui/lib';
 
 // Minimal layout styles without theme, colors, or font families
-export const appContainerStyles = css`
+export const getAppContainerStyle = (theme: Theme) => css`
   min-height: 100vh;
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-columns: auto 1fr;
+  font-family: ${fontFamilies.default};
+  background-color: ${color[theme].background[Variant.Primary][InteractionState.Default]};
+  color: ${color[theme].text[Variant.Primary][InteractionState.Default]};
 `;
 
 export const appLayoutStyle = css`
@@ -13,9 +18,9 @@ export const appLayoutStyle = css`
   overflow: hidden;
 `;
 
-export const sidebarStyle = css`
+export const getSidebarStyle = (theme: Theme) => css`
+  background-color: ${color[theme].background[Variant.Secondary][InteractionState.Default]};
   width: 350px;
-  border-right: 1px solid;
   overflow-y: auto;
   padding: 1.5rem;
 `;
@@ -39,48 +44,7 @@ export const contentPanelStyle = css`
 `;
 
 // Tool Selector Styles
-export const toolSelectorStyle = css`
-  h2 {
-    margin-bottom: 1rem;
-  }
-`;
 
-export const toolsListStyle = css`
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 1rem;
-`;
-
-export const toolItemStyle = (selected?: boolean) => css`
-  border: 1px solid;
-  border-width: ${selected ? '2px' : '1px'};
-  padding: 1rem;
-  cursor: pointer;
-`;
-
-export const inputSchemaStyle = css`
-  border: 1px solid;
-  padding: 0.75rem;
-  overflow-x: auto;
-  margin-top: 0.5rem;
-`;
-
-export const toolActionsStyle = css`
-  margin-top: 1rem;
-`;
-
-export const executeButtonStyle = css`
-  width: 100%;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  cursor: pointer;
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-`;
 
 // Response Display & UI Renderer Styles
 export const sectionTitleStyle = css`

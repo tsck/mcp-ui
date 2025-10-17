@@ -7,8 +7,8 @@ import { GlobalStyles } from './GlobalStyles'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <GlobalStyles />
-    <LeafyGreenProvider darkMode={true}>
+      <LeafyGreenProvider darkMode={true}>
         <App />
-    </LeafyGreenProvider>
+      </LeafyGreenProvider>
   </StrictMode>,
 )

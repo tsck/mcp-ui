@@ -47,7 +47,7 @@ The client will be available at `http://localhost:3001`.
 
 ### Components
 
-- **ToolSelector**: Displays available tools and handles tool selection/execution
+- **ToolNav**: Displays available tools and handles tool selection/execution
 - **ResponseDisplay**: Shows the raw JSON response from tool calls
 - **UIRenderer**: Renders MCP-UI resources using `UIResourceRenderer`
 
@@ -64,7 +64,7 @@ The client will be available at `http://localhost:3001`.
 The client connects to the MCP server at `http://localhost:3000/mcp` by default. To change this, modify the `MCPClient` constructor in `src/services/mcpClient.ts`:
 
 ```typescript
-export const mcpClient = new MCPClient('http://your-server:port/mcp');
+export const mcpClient = new MCPClient("http://your-server:port/mcp");
 ```
 
 ## Project Structure
@@ -73,7 +73,7 @@ export const mcpClient = new MCPClient('http://your-server:port/mcp');
 src/client/
 ├── src/
 │   ├── components/
-│   │   ├── ToolSelector.tsx    # Tool selection UI
+│   │   ├── ToolNav.tsx    # Tool selection UI
 │   │   ├── ResponseDisplay.tsx # Response display
 │   │   └── UIRenderer.tsx      # MCP-UI renderer
 │   ├── services/
