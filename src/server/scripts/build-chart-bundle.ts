@@ -22,6 +22,7 @@ async function buildChartBundle() {
       loader: {
         '.tsx': 'tsx',
         '.ts': 'ts',
+        '.css': 'css',
       },
       define: {
         'process.env.NODE_ENV': '"production"',

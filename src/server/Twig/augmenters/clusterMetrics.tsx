@@ -9,6 +9,7 @@ const __dirname = dirname(__filename);
 
 // Load the bundled charts library once at startup
 const chartsBundle = readFileSync(join(__dirname, '../bundles/chart-bundle.js'), 'utf-8');
+const chartsCss = readFileSync(join(__dirname, '../bundles/chart-bundle.css'), 'utf-8');
 
 export const clusterMetrics = (toolResult: CallToolResult): CallToolResult => {
   const { content } = toolResult;
@@ -29,6 +30,7 @@ export const clusterMetrics = (toolResult: CallToolResult): CallToolResult => {
           body { margin: 0; padding: 20px; font-family: system-ui, -apple-system, sans-serif; }
           #chart-container { width: 100%; height: 400px; }
         </style>
+        <style>${chartsCss}</style>
       </head>
       <body>
         <div id="chart-container"></div>
