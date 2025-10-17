@@ -1,5 +1,6 @@
 node_modules
 .env
 
-# Generated bundle
+# Generated bundles
 src/server/charts-bundle.js
+src/server/Twig/bundles/chart-bundle.js
