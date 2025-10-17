@@ -19,12 +19,14 @@ function App() {
   const [response, setResponse] = useState<CallToolResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTool, setActiveTool] = useState<string>("hello-world");
   const { theme } = useDarkMode();
 
   const handleToolCall = async (
     toolName: string,
     args?: Record<string, unknown>
   ) => {
+    setActiveTool(toolName);
     try {
       setLoading(true);
       setError(null);
@@ -41,7 +43,7 @@ function App() {
   return (
     <div css={getAppContainerStyle(theme)}>
       <div css={appLayoutStyle}>
-        <ToolNav onToolCall={handleToolCall} />
+        <ToolNav onToolCall={handleToolCall} activeTool={activeTool} />
         <main
           css={css`
             display: flex;

@@ -25,7 +25,6 @@ export function UIRenderer({ response }: UIRendererProps) {
   if (!response) {
     return (
       <div>
-        <h2 css={sectionTitleStyle}>Rendered UI</h2>
         <div css={placeholderStyle}>
           No UI to render yet. Execute a tool to see the rendered output.
         </div>
@@ -39,7 +38,6 @@ export function UIRenderer({ response }: UIRendererProps) {
   if (!uiResource) {
     return (
       <div>
-        <h2 css={sectionTitleStyle}>Rendered UI</h2>
         <div css={placeholderStyle}>
           This response does not contain a UI resource.
         </div>
@@ -56,7 +54,6 @@ export function UIRenderer({ response }: UIRendererProps) {
         flex-direction: column;
       `}
     >
-      <h2 css={sectionTitleStyle}>Rendered UI</h2>
       <div css={uiContainerStyle}>
         <UIResourceRenderer
           resource={(uiResource as any).resource}

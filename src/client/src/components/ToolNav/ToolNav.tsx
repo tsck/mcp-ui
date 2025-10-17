@@ -6,9 +6,10 @@ import { errorMessageStyle } from "../../App.styles";
 import { SideNav, SideNavGroup, SideNavItem } from "@leafygreen-ui/side-nav";
 interface ToolNavProps {
   onToolCall: (toolName: string, args?: Record<string, unknown>) => void;
+  activeTool: string;
 }
 
-export function ToolNav({ onToolCall }: ToolNavProps) {
+export function ToolNav({ onToolCall, activeTool }: ToolNavProps) {
   const [tools, setTools] = useState<Tool[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +51,11 @@ export function ToolNav({ onToolCall }: ToolNavProps) {
         {tools
           .sort((a, b) => a.name.localeCompare(b.name))
           .map((tool) => (
-            <SideNavItem key={tool.name} onClick={() => handleExecute(tool)}>
+            <SideNavItem
+              key={tool.name}
+              onClick={() => handleExecute(tool)}
+              active={activeTool === tool.name}
+            >
               {tool.title || tool.name}
             </SideNavItem>
           ))}

@@ -36,7 +36,7 @@ window.renderChart = (containerId: string, data: Array<ClusterMetrics>) => {
       {data.map((item, index) => (
         <Line key={index} name={item.name} data={item.data} />
       ))}
-      <ChartHeader title="My Chart" />
+      <ChartHeader title="MCP Generated Chart" />
       <ChartGrid />
       <ChartTooltip />
     </Chart>

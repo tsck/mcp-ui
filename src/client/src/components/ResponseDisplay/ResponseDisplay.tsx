@@ -21,7 +21,6 @@ export function ResponseDisplay({
   if (loading) {
     return (
       <div>
-        <h2 css={sectionTitleStyle}>Response</h2>
         <p>Executing tool...</p>
       </div>
     );
@@ -30,7 +29,6 @@ export function ResponseDisplay({
   if (error) {
     return (
       <div>
-        <h2 css={sectionTitleStyle}>Response</h2>
         <div css={errorMessageStyle}>Error: {error}</div>
       </div>
     );
@@ -39,7 +37,6 @@ export function ResponseDisplay({
   if (!response) {
     return (
       <div>
-        <h2 css={sectionTitleStyle}>Response</h2>
         <div css={placeholderStyle}>
           No response yet. Execute a tool to see the result.
         </div>
@@ -49,7 +46,6 @@ export function ResponseDisplay({
 
   return (
     <>
-      <h2 css={sectionTitleStyle}>Response</h2>
       <CodeEditor
         readOnly
         value={JSON.stringify(response, null, 2)}
