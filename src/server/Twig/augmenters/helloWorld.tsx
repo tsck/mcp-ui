@@ -8,7 +8,7 @@ export const helloWorld = (toolResult: CallToolResult): CallToolResult => {
       type: "rawHtml",
       htmlString: '<h1 style="color: white;">Hello World</h1>',
     },
-    encoding: "text",
+    encoding: "blob",
   });
 
   return {

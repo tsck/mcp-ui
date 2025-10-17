@@ -55,7 +55,7 @@ export const clusterMetrics = (toolResult: CallToolResult): CallToolResult => {
       type: "rawHtml",
       htmlString,
     },
-    encoding: "text",
+    encoding: "blob",
   });
 
   return {
