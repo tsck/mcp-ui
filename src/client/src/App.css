@@ -19,12 +19,6 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.app-header h1 {
-  color: #61dafb;
-  margin-bottom: 0.5rem;
-  font-size: 2rem;
-}
-
 .app-header p {
   color: #a0a0a0;
   font-size: 0.95rem;

@@ -5,6 +5,7 @@ import { ResponseDisplay } from './components/ResponseDisplay';
 import { UIRenderer } from './components/UIRenderer';
 import { mcpClient } from './services/mcpClient';
 import './App.css';
+import { H1 } from '@leafygreen-ui/typography';
 
 function App() {
   const [response, setResponse] = useState<CallToolResult | null>(null);
@@ -28,8 +29,7 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>MCP React Client</h1>
-        <p>Interact with MCP Server Tools</p>
+        <H1 as="h1">MCP React Client</H1>
       </header>
       <div className="app-layout">
         <aside className="sidebar">
