@@ -1,11 +1,17 @@
+/** @jsxImportSource @emotion/react */
 import { useState } from 'react';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { ToolSelector } from './components/ToolSelector';
 import { ResponseDisplay } from './components/ResponseDisplay';
 import { UIRenderer } from './components/UIRenderer';
 import { mcpClient } from './services/mcpClient';
-import './App.css';
-import { H1 } from '@leafygreen-ui/typography';
+import {
+  appContainerStyles,
+  appLayoutStyle,
+  sidebarStyle,
+  mainContentStyle,
+  contentPanelStyle,
+} from './App.styles';
 
 function App() {
   const [response, setResponse] = useState<CallToolResult | null>(null);
@@ -27,19 +33,19 @@ function App() {
   };
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <H1 as="h1">MCP React Client</H1>
+    <div css={appContainerStyles}>
+      <header>
+        <h1>Twig Inspector</h1>
       </header>
-      <div className="app-layout">
-        <aside className="sidebar">
+      <div css={appLayoutStyle}>
+        <aside css={sidebarStyle}>
           <ToolSelector onToolCall={handleToolCall} />
         </aside>
-        <main className="main-content">
-          <div className="content-panel">
+        <main css={mainContentStyle}>
+          <div css={contentPanelStyle}>
             <ResponseDisplay response={response} loading={loading} error={error} />
           </div>
-          <div className="content-panel">
+          <div css={contentPanelStyle}>
             <UIRenderer response={response} />
           </div>
         </main>

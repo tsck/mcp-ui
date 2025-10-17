@@ -1,4 +1,6 @@
+/** @jsxImportSource @emotion/react */
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import { sectionTitleStyle, responseJsonStyle, placeholderStyle, errorMessageStyle } from '../App.styles';
 
 interface ResponseDisplayProps {
   response: CallToolResult | null;
@@ -9,8 +11,8 @@ interface ResponseDisplayProps {
 export function ResponseDisplay({ response, loading, error }: ResponseDisplayProps) {
   if (loading) {
     return (
-      <div className="response-display">
-        <h2>Response</h2>
+      <div>
+        <h2 css={sectionTitleStyle}>Response</h2>
         <p>Executing tool...</p>
       </div>
     );
@@ -18,26 +20,26 @@ export function ResponseDisplay({ response, loading, error }: ResponseDisplayPro
 
   if (error) {
     return (
-      <div className="response-display">
-        <h2>Response</h2>
-        <p className="error">Error: {error}</p>
+      <div>
+        <h2 css={sectionTitleStyle}>Response</h2>
+        <div css={errorMessageStyle}>Error: {error}</div>
       </div>
     );
   }
 
   if (!response) {
     return (
-      <div className="response-display">
-        <h2>Response</h2>
-        <p className="placeholder">No response yet. Execute a tool to see the result.</p>
+      <div>
+        <h2 css={sectionTitleStyle}>Response</h2>
+        <div css={placeholderStyle}>No response yet. Execute a tool to see the result.</div>
       </div>
     );
   }
 
   return (
-    <div className="response-display">
-      <h2>Response</h2>
-      <pre className="response-json">
+    <div>
+      <h2 css={sectionTitleStyle}>Response</h2>
+      <pre css={responseJsonStyle}>
         {JSON.stringify(response, null, 2)}
       </pre>
     </div>

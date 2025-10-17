@@ -1,6 +1,16 @@
+/** @jsxImportSource @emotion/react */
 import { useState, useEffect } from 'react';
 import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 import { mcpClient } from '../services/mcpClient';
+import {
+  toolSelectorStyle,
+  toolsListStyle,
+  toolItemStyle,
+  inputSchemaStyle,
+  toolActionsStyle,
+  executeButtonStyle,
+  errorMessageStyle,
+} from '../App.styles';
 
 interface ToolSelectorProps {
   onToolCall: (toolName: string, args?: Record<string, unknown>) => void;
@@ -43,7 +53,7 @@ export function ToolSelector({ onToolCall }: ToolSelectorProps) {
 
   if (loading) {
     return (
-      <div className="tool-selector">
+      <div css={toolSelectorStyle}>
         <h2>Available Tools</h2>
         <p>Loading tools...</p>
       </div>
@@ -52,27 +62,27 @@ export function ToolSelector({ onToolCall }: ToolSelectorProps) {
 
   if (error) {
     return (
-      <div className="tool-selector">
+      <div css={toolSelectorStyle}>
         <h2>Available Tools</h2>
-        <p className="error">Error: {error}</p>
+        <div css={errorMessageStyle}>Error: {error}</div>
       </div>
     );
   }
 
   return (
-    <div className="tool-selector">
+    <div css={toolSelectorStyle}>
       <h2>Available Tools</h2>
-      <div className="tools-list">
+      <div css={toolsListStyle}>
         {tools.map((tool) => (
           <div
             key={tool.name}
-            className={`tool-item ${selectedTool?.name === tool.name ? 'selected' : ''}`}
+            css={toolItemStyle(selectedTool?.name === tool.name)}
             onClick={() => handleToolSelect(tool)}
           >
             <h3>{tool.title || tool.name}</h3>
             <p>{tool.description}</p>
             {tool.inputSchema && (
-              <pre className="input-schema">
+              <pre css={inputSchemaStyle}>
                 {JSON.stringify(tool.inputSchema, null, 2)}
               </pre>
             )}
@@ -80,8 +90,8 @@ export function ToolSelector({ onToolCall }: ToolSelectorProps) {
         ))}
       </div>
       {selectedTool && (
-        <div className="tool-actions">
-          <button onClick={handleExecute} className="execute-btn">
+        <div css={toolActionsStyle}>
+          <button css={executeButtonStyle} onClick={handleExecute}>
             Execute {selectedTool.name}
           </button>
         </div>
