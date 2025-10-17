@@ -11,10 +11,12 @@
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
+    "@leafygreen-ui/code-editor": "^0.1.0",
     "@leafygreen-ui/leafygreen-provider": "^5.0.4",
     "@leafygreen-ui/lib": "^15.6.2",
     "@leafygreen-ui/palette": "^5.0.2",
     "@leafygreen-ui/side-nav": "^17.0.7",
+    "@leafygreen-ui/tabs": "^17.0.4",
     "@leafygreen-ui/tokens": "^3.2.4",
     "@leafygreen-ui/tooltip": "^14.2.0",
     "@leafygreen-ui/typography": "^22.1.3",

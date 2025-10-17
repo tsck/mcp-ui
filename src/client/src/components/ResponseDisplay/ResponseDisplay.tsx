@@ -1,6 +1,11 @@
 /** @jsxImportSource @emotion/react */
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { sectionTitleStyle, responseJsonStyle, placeholderStyle, errorMessageStyle } from '../App.styles';
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import {
+  sectionTitleStyle,
+  placeholderStyle,
+  errorMessageStyle,
+} from "./ResponseDisplay.styles";
+import { CodeEditor } from "@leafygreen-ui/code-editor";
 
 interface ResponseDisplayProps {
   response: CallToolResult | null;
@@ -8,7 +13,11 @@ interface ResponseDisplayProps {
   error: string | null;
 }
 
-export function ResponseDisplay({ response, loading, error }: ResponseDisplayProps) {
+export function ResponseDisplay({
+  response,
+  loading,
+  error,
+}: ResponseDisplayProps) {
   if (loading) {
     return (
       <div>
@@ -31,18 +40,24 @@ export function ResponseDisplay({ response, loading, error }: ResponseDisplayPro
     return (
       <div>
         <h2 css={sectionTitleStyle}>Response</h2>
-        <div css={placeholderStyle}>No response yet. Execute a tool to see the result.</div>
+        <div css={placeholderStyle}>
+          No response yet. Execute a tool to see the result.
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
+    <>
       <h2 css={sectionTitleStyle}>Response</h2>
-      <pre css={responseJsonStyle}>
-        {JSON.stringify(response, null, 2)}
-      </pre>
-    </div>
+      <CodeEditor
+        readOnly
+        value={JSON.stringify(response, null, 2)}
+        enableLineWrapping
+        language="json"
+        // @ts-ignore
+        copyButtonAppearance="hidden"
+      />
+    </>
   );
 }
-
