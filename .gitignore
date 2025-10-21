@@ -4,3 +4,4 @@ node_modules
 # Generated bundles
 src/server/charts-bundle.js
 src/server/Twig/bundles/chart-bundle.js
+packages/Twig/src/augmenters/*/bundles/
