@@ -1,38 +1,22 @@
 {
   "name": "mcp-ui",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "UI augmentation for Model Context Protocol (MCP) servers",
+  "packageManager": "pnpm@10.11.0",
   "scripts": {
-    "build:bundles": "tsx src/server/scripts/build-augmenter-bundles.ts",
-    "start": "pnpm build:bundles && pnpm tsx watch src/server/index.ts",
-    "server:dev": "pnpm build:bundles && pnpm tsx watch src/server/index.ts",
-    "client:dev": "cd src/client && pnpm dev",
-    "dev": "pnpm build:bundles && pnpm concurrently \"tsx watch src/server/index.ts\" \"pnpm client:dev\" --names \"SERVER,CLIENT\" --prefix-colors \"blue,green\""
+    "build:bundles": "pnpm --filter @mcp-ui/twig build",
+    "start": "pnpm --filter @mcp-ui/server start",
+    "server:dev": "pnpm --filter @mcp-ui/server dev",
+    "client:dev": "pnpm --filter @mcp-ui/client dev",
+    "dev": "pnpm build:bundles && pnpm concurrently \"pnpm --filter @mcp-ui/server dev\" \"pnpm client:dev\" --names \"SERVER,CLIENT\" --prefix-colors \"blue,green\""
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "packageManager": "pnpm@10.11.0",
-  "dependencies": {
-    "@leafygreen-ui/card": "^13.1.1",
-    "@leafygreen-ui/typography": "^22.1.3",
-    "@lg-charts/core": "^2.1.0",
-    "@mcp-ui/server": "^5.12.0",
-    "@modelcontextprotocol/sdk": "^1.20.0",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.3",
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "tsx": "^4.20.6"
-  },
+  "license": "MIT",
   "devDependencies": {
-    "buffer": "^6.0.3",
-    "concurrently": "^9.2.1",
-    "esbuild": "^0.25.11",
-    "node-stdlib-browser": "^1.3.1",
-    "process": "^0.11.10"
+    "concurrently": "^9.2.1"
+  },
+  "dependencies": {
+    "@mcp-ui/server": "^5.12.0"
   }
 }

@@ -15,7 +15,7 @@ interface EntryPoint {
 }
 
 function discoverEntryPoints(): EntryPoint[] {
-  const augmentersDir = join(__dirname, "../Twig/augmenters");
+  const augmentersDir = join(__dirname, "../augmenters");
   const entryPoints: EntryPoint[] = [];
 
   try {
