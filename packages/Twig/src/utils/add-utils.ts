@@ -1,8 +1,7 @@
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { createUIResource } from "@mcp-ui/server";
-import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { CallToolResult } from "@modelcontextprotocol/sdk/types";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -115,15 +114,15 @@ class AugmenterRegistry {
     // Generate HTML
     const htmlString = this.generateHtml(bundleName, bundle, props);
 
-    // Create UI resource
-    const uiResource = createUIResource({
-      uri: `ui://${bundleName}`,
-      content: {
-        type: "rawHtml",
-        htmlString,
+    // Create UI resource following MCP UIResource format
+    const uiResource = {
+      type: "resource" as const,
+      resource: {
+        uri: `ui://${bundleName}`,
+        mimeType: "text/html" as const,
+        text: htmlString,
       },
-      encoding: "text",
-    });
+    };
 
     return {
       ...toolResult,
