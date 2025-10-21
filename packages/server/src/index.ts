@@ -8,7 +8,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { randomUUID } from "crypto";
 import { mockData } from "./mockData";
-import { augmentWithUi } from "@mcp-ui/twig";
+import { addUI } from "@mcp-ui/twig";
 
 const app = express();
 const port = 3000;
@@ -70,7 +70,7 @@ app.post("/mcp", async (req, res) => {
           uri: "data://hello-world",
         } as CallToolResult;
 
-        return augmentWithUi(result);
+        return addUI(result);
       }
     );
 
@@ -87,7 +87,7 @@ app.post("/mcp", async (req, res) => {
           uri: "data://cluster-metrics",
         } as CallToolResult;
 
-        return augmentWithUi(result);
+        return addUI(result);
       }
     );
 

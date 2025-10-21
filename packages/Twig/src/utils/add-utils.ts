@@ -95,7 +95,7 @@ class AugmenterRegistry {
    * Augment a tool result with UI if a matching augmenter is registered
    */
   augment(toolResult: CallToolResult): CallToolResult {
-    const config = this.augmenters.get(toolResult.uri || "");
+    const config = this.augmenters.get((toolResult as any).uri || "");
 
     if (!config) {
       // No augmenter registered for this URI

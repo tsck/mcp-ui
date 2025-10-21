@@ -1,5 +1,5 @@
 import { CallToolResult } from "@modelcontextprotocol/sdk/types";
-import { createAugmenterRegistry } from "./src/utils/augmenter-utils.js";
+import { createAugmenterRegistry } from "./src/utils/add-utils";
 import { transformData as clusterTransform } from "./src/augmenters/clusterMetrics/clusterMetrics.transform.js";
 
 const registry = createAugmenterRegistry()
@@ -13,6 +13,6 @@ const registry = createAugmenterRegistry()
     bundleName: "helloWorld",
   });
 
-export const augmentWithUi = (toolResult: CallToolResult): CallToolResult => {
+export const addUI = (toolResult: CallToolResult): CallToolResult => {
   return registry.augment(toolResult);
 };
