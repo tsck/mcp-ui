@@ -3,11 +3,11 @@
   "version": "0.1.0",
   "description": "UI augmentation library for Model Context Protocol (MCP) servers",
   "type": "module",
-  "main": "./index.ts",
+  "main": "./src/index.ts",
   "exports": {
     ".": {
-      "import": "./index.ts",
-      "require": "./index.ts"
+      "import": "./src/index.ts",
+      "require": "./src/index.ts"
     }
   },
   "scripts": {

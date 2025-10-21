@@ -12,6 +12,6 @@
     "jsxImportSource": "@emotion/react",
     "types": ["node"]
   },
-  "include": ["src/**/*", "index.ts"],
+  "include": ["src/**/*", "src/index.ts"],
   "exclude": ["node_modules"]
 }
