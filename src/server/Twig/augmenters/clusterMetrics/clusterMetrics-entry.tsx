@@ -26,6 +26,21 @@ declare global {
   }
 }
 
+const MicroUI = ({ data }: { data: Array<ClusterMetrics> }) => {
+  return (
+    <Chart>
+      {data.map((item, index) => (
+        <Line key={index} name={item.name} data={item.data} />
+      ))}
+      <ChartHeader title="MCP Generated Chart" />
+      <ChartGrid />
+      <ChartTooltip />
+      <XAxis type="time" />
+      <YAxis type="value" />
+    </Chart>
+  );
+};
+
 window.renderClusterMetrics = (
   containerId: string,
   data: Array<ClusterMetrics>
@@ -37,14 +52,5 @@ window.renderClusterMetrics = (
   }
 
   const root = createRoot(container);
-  root.render(
-    <Chart>
-      {data.map((item, index) => (
-        <Line key={index} name={item.name} data={item.data} />
-      ))}
-      <ChartHeader title="MCP Generated Chart" />
-      <ChartGrid />
-      <ChartTooltip />
-    </Chart>
-  );
+  root.render(<MicroUI data={data} />);
 };

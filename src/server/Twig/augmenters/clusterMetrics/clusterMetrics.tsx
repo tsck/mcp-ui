@@ -8,11 +8,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Load the bundled charts library once at startup
-const chartsBundle = readFileSync(
+const jsBundle = readFileSync(
   join(__dirname, "bundles/clusterMetrics-bundle.js"),
   "utf-8"
 );
-const chartsCss = readFileSync(
+const cssBundle = readFileSync(
   join(__dirname, "bundles/clusterMetrics-bundle.css"),
   "utf-8"
 );
@@ -32,16 +32,13 @@ export const clusterMetrics = (toolResult: CallToolResult): CallToolResult => {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>${chartsCss}</style>
+        <style>${cssBundle}</style>
       </head>
       <body>
-        <div id="chart-container"></div>
-        <script>${chartsBundle}</script>
+        <div id="ui-container"></div>
+        <script>${jsBundle}</script>
         <script>
-          // Initialize the chart with data
-          window.renderClusterMetrics('chart-container', ${JSON.stringify(
-            data
-          )});
+          window.renderClusterMetrics('ui-container', ${JSON.stringify(data)});
         </script>
       </body>
     </html>
@@ -53,7 +50,7 @@ export const clusterMetrics = (toolResult: CallToolResult): CallToolResult => {
       type: "rawHtml",
       htmlString,
     },
-    encoding: "blob",
+    encoding: "text",
   });
 
   return {
