@@ -1,17 +1,17 @@
-# Augmenters
+# MicroUIs
 
-This directory contains UI augmenters that transform tool results into interactive UI components.
+This directory contains micro UIs that transform tool results into interactive UI components.
 
-## Creating a New Augmenter
+## Creating a New MicroUI
 
-Creating a new augmenter is simple - just create a directory with your component, optional styles, and optional transform function.
+Creating a new microUI is simple - just create a directory with your component, optional styles, and optional transform function.
 
-### Example: Simple Augmenter (No Data)
+### Example: Simple MicroUI (No Data)
 
 **Directory structure:**
 
 ```
-src/augmenters/myWidget/
+src/microUIs/myWidget/
   myWidget.tsx
   myWidget.styles.ts  (optional)
 ```
@@ -19,7 +19,7 @@ src/augmenters/myWidget/
 **Component file:**
 
 ```typescript
-// src/augmenters/myWidget/myWidget.tsx
+// src/microUIs/myWidget/myWidget.tsx
 /** @jsxImportSource @emotion/react */
 import { Card } from "@leafygreen-ui/card";
 import { H1 } from "@leafygreen-ui/typography";
@@ -37,7 +37,7 @@ export const MyWidget = () => (
 **Styles file (optional):**
 
 ```typescript
-// src/augmenters/myWidget/myWidget.styles.ts
+// src/microUIs/myWidget/myWidget.styles.ts
 import { css } from "@emotion/react";
 
 export const container = css`
@@ -46,12 +46,12 @@ export const container = css`
 `;
 ```
 
-### Example: Data-Driven Augmenter
+### Example: Data-Driven MicroUI
 
 **Directory structure:**
 
 ```
-src/augmenters/myChart/
+src/microUIs/myChart/
   myChart.tsx
   myChart.styles.ts     (optional)
   myChart.transform.ts  (if you need data transformation)
@@ -60,7 +60,7 @@ src/augmenters/myChart/
 **Component file:**
 
 ```typescript
-// src/augmenters/myChart/myChart.tsx
+// src/microUIs/myChart/myChart.tsx
 /** @jsxImportSource @emotion/react */
 import { Chart, Line } from "@lg-charts/core";
 
@@ -78,7 +78,7 @@ export const MyChart = ({ data }: MyChartProps) => (
 **Transform file (optional):**
 
 ```typescript
-// src/augmenters/myChart/myChart.transform.ts
+// src/microUIs/myChart/myChart.transform.ts
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 
 export const transformData = (toolResult: CallToolResult) => {
@@ -89,7 +89,7 @@ export const transformData = (toolResult: CallToolResult) => {
 
 ### Styling with Emotion
 
-All augmenters use [Emotion](https://emotion.sh/) for styling:
+All microUIs use [Emotion](https://emotion.sh/) for styling:
 
 1. **Add the JSX pragma** at the top of your component file:
 
@@ -123,12 +123,12 @@ All augmenters use [Emotion](https://emotion.sh/) for styling:
 - ✅ Dynamic styles based on props
 - ✅ Better co-location of styles with components
 
-## Registering Your Augmenter
+## Registering Your MicroUI
 
-Register your augmenter in `/packages/Twig/index.ts`:
+Register your microUI in `/packages/Twig/index.ts`:
 
 ```typescript
-import { transformData as myChartTransform } from "./src/augmenters/myChart/myChart.transform.js";
+import { transformData as myChartTransform } from "./src/microUIs/myChart/myChart.transform.js";
 
 const registry = createAugmenterRegistry().register({
   uri: "data://my-chart", // URI to match from tool results
@@ -153,17 +153,17 @@ npm run build
 
 This will:
 
-1. Discover all augmenter directories (looks for `dirName/dirName.tsx` pattern)
+1. Discover all microUI directories (looks for `dirName/dirName.tsx` pattern)
 2. Generate temporary entry files with React rendering boilerplate
 3. Bundle each component with esbuild (includes Emotion and all styles)
-4. Output bundles to `bundles/` directory
+4. Output bundles to `src/bundles/` directory
 5. Clean up temporary files
 
 ## How It Works
 
-1. **Build Time**: The build script discovers your component files and creates self-contained JavaScript and CSS bundles.
+1. **Build Time**: The build script discovers your component files and creates self-contained JavaScript bundles.
 
-2. **Runtime**: When a tool result matches a registered URI, the augmenter utility:
+2. **Runtime**: When a tool result matches a registered URI, the microUI utility:
    - Loads the pre-built bundles from disk
    - Transforms the tool result data using your `transformData` function (if provided)
    - Generates an HTML document with embedded bundles
@@ -172,17 +172,18 @@ This will:
 ## File Structure
 
 ```
-src/augmenters/
+src/
   ├── bundles/                        # Generated bundles (git-ignored)
   │   ├── clusterMetrics-bundle.js    # JS + Emotion styles bundled together
   │   └── helloWorld-bundle.js        # JS + Emotion styles bundled together
-  ├── clusterMetrics/
-  │   ├── clusterMetrics.tsx          # Component (browser-only)
-  │   ├── clusterMetrics.styles.ts    # Emotion styles (optional)
-  │   └── clusterMetrics.transform.ts # Data transform (server-side)
-  └── helloWorld/
-      ├── helloWorld.tsx              # Component (browser-only)
-      └── helloWorld.styles.ts        # Emotion styles (optional)
+  └── microUIs/
+      ├── clusterMetrics/
+      │   ├── clusterMetrics.tsx          # Component (browser-only)
+      │   ├── clusterMetrics.styles.ts    # Emotion styles (optional)
+      │   └── clusterMetrics.transform.ts # Data transform (server-side)
+      └── helloWorld/
+          ├── helloWorld.tsx              # Component (browser-only)
+          └── helloWorld.styles.ts        # Emotion styles (optional)
 ```
 
 **Note:** Emotion styles are injected directly into the JavaScript bundle, so there are no separate CSS files generated or loaded.

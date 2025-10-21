@@ -42,7 +42,7 @@ class AugmenterRegistry {
     }
 
     // Load from disk
-    const bundlesDir = join(__dirname, "../augmenters/bundles");
+    const bundlesDir = join(__dirname, "../bundles");
 
     try {
       const jsBundle = readFileSync(

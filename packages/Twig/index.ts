@@ -1,6 +1,6 @@
 import { CallToolResult } from "@modelcontextprotocol/sdk/types";
 import { createAugmenterRegistry } from "./src/utils/add-utils";
-import { transformData as clusterTransform } from "./src/augmenters/clusterMetrics/clusterMetrics.transform.js";
+import { transformData as clusterTransform } from "./src/microUIs/clusterMetrics/clusterMetrics.transform.js";
 
 const registry = createAugmenterRegistry()
   .register({

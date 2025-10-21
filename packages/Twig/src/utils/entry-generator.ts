@@ -28,20 +28,20 @@ function componentNameToBundleName(componentName: string): string {
 }
 
 /**
- * Discover component files in the augmenters directory (searches subdirectories)
+ * Discover component files in the microUIs directory (searches subdirectories)
  */
-export function discoverComponents(augmentersDir: string): ComponentInfo[] {
+export function discoverComponents(microUIsDir: string): ComponentInfo[] {
   const components: ComponentInfo[] = [];
 
   try {
-    const entries = readdirSync(augmentersDir);
+    const entries = readdirSync(microUIsDir);
 
     for (const entry of entries) {
-      const entryPath = join(augmentersDir, entry);
+      const entryPath = join(microUIsDir, entry);
       const stat = statSync(entryPath);
 
-      // Skip non-directories and the bundles directory
-      if (!stat.isDirectory() || entry === "bundles") {
+      // Skip non-directories (bundles directory is now at src/ level)
+      if (!stat.isDirectory()) {
         continue;
       }
 
@@ -110,19 +110,19 @@ window.${renderFunctionName} = (containerId: string, props?: any) => {
 /**
  * Generate all entry files and return entry points for building
  */
-export function generateEntries(augmentersDir: string): GeneratedEntry[] {
-  const components = discoverComponents(augmentersDir);
+export function generateEntries(microUIsDir: string): GeneratedEntry[] {
+  const components = discoverComponents(microUIsDir);
   const entries: GeneratedEntry[] = [];
 
-  // Create bundles directory if it doesn't exist
-  const bundlesDir = join(augmentersDir, "bundles");
+  // Create bundles directory at src/ level if it doesn't exist
+  const bundlesDir = join(dirname(microUIsDir), "bundles");
   if (!existsSync(bundlesDir)) {
     mkdirSync(bundlesDir, { recursive: true });
   }
 
   for (const component of components) {
     const bundleName = componentNameToBundleName(component.name);
-    const entryPath = join(augmentersDir, `${bundleName}-entry.generated.tsx`);
+    const entryPath = join(microUIsDir, `${bundleName}-entry.generated.tsx`);
 
     // Generate the entry file
     generateEntryFile(component, entryPath);
@@ -140,13 +140,13 @@ export function generateEntries(augmentersDir: string): GeneratedEntry[] {
 /**
  * Clean up generated entry files
  */
-export function cleanupGeneratedEntries(augmentersDir: string): void {
+export function cleanupGeneratedEntries(microUIsDir: string): void {
   try {
-    const files = readdirSync(augmentersDir);
+    const files = readdirSync(microUIsDir);
 
     for (const file of files) {
       if (file.endsWith("-entry.generated.tsx")) {
-        const filePath = join(augmentersDir, file);
+        const filePath = join(microUIsDir, file);
         try {
           unlinkSync(filePath);
         } catch (error) {

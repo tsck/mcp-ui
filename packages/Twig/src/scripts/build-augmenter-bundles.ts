@@ -55,11 +55,11 @@ async function buildBundle(entry: EntryPoint) {
 }
 
 async function buildAllBundles() {
-  const augmentersDir = join(__dirname, "../augmenters");
+  const microUIsDir = join(__dirname, "../microUIs");
 
   console.log("Generating entry points from components...\n");
 
-  const entryPoints = generateEntries(augmentersDir);
+  const entryPoints = generateEntries(microUIsDir);
 
   if (entryPoints.length === 0) {
     console.log("No components found. Nothing to build.");
@@ -82,7 +82,7 @@ async function buildAllBundles() {
 
   // Clean up generated entry files
   console.log("\nCleaning up generated entry files...");
-  cleanupGeneratedEntries(augmentersDir);
+  cleanupGeneratedEntries(microUIsDir);
 
   if (failCount > 0) {
     process.exit(1);
