@@ -8,7 +8,8 @@
     "strict": true,
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "types": ["node"]
   },
   "include": ["src/**/*", "index.ts"],
   "exclude": ["node_modules"]
