@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "MCP UI Server",
   "type": "module",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "scripts": {
-    "start": "pnpm build:twig && tsx index.ts",
-    "dev": "pnpm build:twig && tsx watch index.ts",
+    "start": "pnpm build:twig && tsx src/index.ts",
+    "dev": "pnpm build:twig && tsx watch src/index.ts",
     "build:twig": "pnpm --filter @mcp-ui/twig build"
   },
   "dependencies": {

@@ -16,7 +16,7 @@ importers:
         specifier: ^9.2.1
         version: 9.2.1
 
-  src/Twig:
+  packages/Twig:
     dependencies:
       '@leafygreen-ui/card':
         specifier: ^13.1.1
@@ -59,7 +59,7 @@ importers:
         specifier: ^4.20.6
         version: 4.20.6
 
-  src/client:
+  packages/client:
     dependencies:
       '@emotion/react':
         specifier: ^11.14.0
@@ -144,7 +144,7 @@ importers:
         specifier: ^0.24.0
         version: 0.24.0(rollup@4.52.5)(vite@7.1.11(@types/node@24.7.2)(tsx@4.20.6))
 
-  src/server:
+  packages/server:
     dependencies:
       '@mcp-ui/twig':
         specifier: workspace:*
