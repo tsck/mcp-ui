@@ -9,11 +9,11 @@ const __dirname = dirname(__filename);
 
 // Load the bundled charts library once at startup
 const chartsBundle = readFileSync(
-  join(__dirname, "../bundles/chart-bundle.js"),
+  join(__dirname, "bundles/clusterMetrics-bundle.js"),
   "utf-8"
 );
 const chartsCss = readFileSync(
-  join(__dirname, "../bundles/chart-bundle.css"),
+  join(__dirname, "bundles/clusterMetrics-bundle.css"),
   "utf-8"
 );
 
@@ -39,7 +39,9 @@ export const clusterMetrics = (toolResult: CallToolResult): CallToolResult => {
         <script>${chartsBundle}</script>
         <script>
           // Initialize the chart with data
-          window.renderChart('chart-container', ${JSON.stringify(data)});
+          window.renderClusterMetrics('chart-container', ${JSON.stringify(
+            data
+          )});
         </script>
       </body>
     </html>

@@ -1,6 +1,6 @@
 import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { clusterMetrics } from "./augmenters/clusterMetrics";
-import { helloWorld } from "./augmenters/helloWorld";
+import { clusterMetrics } from "./augmenters/clusterMetrics/clusterMetrics";
+import { helloWorld } from "./augmenters/helloWorld/helloWorld";
 
 export const augmentWithUi = (toolResult: CallToolResult): CallToolResult => {
   if (toolResult.uri === "data://cluster-metrics") {

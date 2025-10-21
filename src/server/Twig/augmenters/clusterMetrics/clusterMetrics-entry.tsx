@@ -9,21 +9,27 @@ import {
   XAxis,
   YAxis,
 } from "@lg-charts/core";
-import "./chart-styles.css";
+import "./clusterMetrics-entry.css";
 
 interface ClusterMetrics {
   name: string;
   data: Array<[string, number]>;
 }
 
-// Expose a global function to render charts
+// Expose a global function to render cluster metrics charts
 declare global {
   interface Window {
-    renderChart: (containerId: string, data: Array<ClusterMetrics>) => void;
+    renderClusterMetrics: (
+      containerId: string,
+      data: Array<ClusterMetrics>
+    ) => void;
   }
 }
 
-window.renderChart = (containerId: string, data: Array<ClusterMetrics>) => {
+window.renderClusterMetrics = (
+  containerId: string,
+  data: Array<ClusterMetrics>
+) => {
   const container = document.getElementById(containerId);
   if (!container) {
     console.error(`Container with id "${containerId}" not found`);
