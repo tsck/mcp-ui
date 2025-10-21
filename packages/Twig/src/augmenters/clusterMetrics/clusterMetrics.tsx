@@ -1,60 +1,36 @@
-import { readFileSync } from "fs";
-import { join, dirname } from "path";
-import { fileURLToPath } from "url";
-import { createUIResource } from "@mcp-ui/server";
-import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+/** @jsxImportSource @emotion/react */
+import React from "react";
+import {
+  Chart,
+  ChartGrid,
+  ChartHeader,
+  ChartTooltip,
+  Line,
+  XAxis,
+  YAxis,
+} from "@lg-charts/core";
+import * as styles from "./clusterMetrics.styles";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+interface ClusterMetrics {
+  name: string;
+  data: Array<[string, number]>;
+}
 
-// Load the bundled charts library once at startup
-const jsBundle = readFileSync(
-  join(__dirname, "bundles/clusterMetrics-bundle.js"),
-  "utf-8"
+interface ClusterMetricsProps {
+  data: Array<ClusterMetrics>;
+}
+
+export const ClusterMetrics = ({ data }: ClusterMetricsProps) => (
+  <div css={styles.chartContainer}>
+    <Chart>
+      {data.map((item, index) => (
+        <Line key={index} name={item.name} data={item.data} />
+      ))}
+      <ChartHeader title="MCP Generated Chart" />
+      <ChartGrid />
+      <ChartTooltip />
+      <XAxis type="time" />
+      <YAxis type="value" />
+    </Chart>
+  </div>
 );
-const cssBundle = readFileSync(
-  join(__dirname, "bundles/clusterMetrics-bundle.css"),
-  "utf-8"
-);
-
-export const clusterMetrics = (toolResult: CallToolResult): CallToolResult => {
-  const { content } = toolResult;
-  interface ClusterMetrics {
-    name: string;
-    data: Array<[string, number]>;
-  }
-  const data = JSON.parse(content[0].text as string) as Array<ClusterMetrics>;
-
-  // Create self-contained HTML with inline bundle and initialization
-  const htmlString = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <style>${cssBundle}</style>
-      </head>
-      <body>
-        <div id="ui-container"></div>
-        <script>${jsBundle}</script>
-        <script>
-          window.renderClusterMetrics('ui-container', ${JSON.stringify(data)});
-        </script>
-      </body>
-    </html>
-  `;
-
-  const uiResource = createUIResource({
-    uri: "ui://cluster-metrics",
-    content: {
-      type: "rawHtml",
-      htmlString,
-    },
-    encoding: "text",
-  });
-
-  return {
-    ...toolResult,
-    content: [uiResource],
-  };
-};

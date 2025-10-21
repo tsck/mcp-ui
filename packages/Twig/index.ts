@@ -1,15 +1,18 @@
-import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import { clusterMetrics } from "./src/augmenters/clusterMetrics/clusterMetrics";
-import { helloWorld } from "./src/augmenters/helloWorld/helloWorld";
+import { CallToolResult } from "@modelcontextprotocol/sdk/types";
+import { createAugmenterRegistry } from "./src/utils/augmenter-utils.js";
+import { transformData as clusterTransform } from "./src/augmenters/clusterMetrics/clusterMetrics.transform.js";
+
+const registry = createAugmenterRegistry()
+  .register({
+    uri: "data://cluster-metrics",
+    bundleName: "clusterMetrics",
+    transformData: clusterTransform,
+  })
+  .register({
+    uri: "data://hello-world",
+    bundleName: "helloWorld",
+  });
 
 export const augmentWithUi = (toolResult: CallToolResult): CallToolResult => {
-  if (toolResult.uri === "data://cluster-metrics") {
-    return clusterMetrics(toolResult);
-  }
-
-  if (toolResult.uri === "data://hello-world") {
-    return helloWorld(toolResult);
-  }
-
-  return toolResult;
+  return registry.augment(toolResult);
 };

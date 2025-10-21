@@ -18,6 +18,9 @@ importers:
 
   packages/Twig:
     dependencies:
+      '@emotion/react':
+        specifier: ^11.13.5
+        version: 11.14.0(@types/react@18.3.26)(react@18.3.1)
       '@leafygreen-ui/card':
         specifier: ^13.1.1
         version: 13.1.1(@leafygreen-ui/leafygreen-provider@5.0.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react@18.3.1)

@@ -1,8 +1,11 @@
 import * as esbuild from "esbuild";
-import { join, dirname, basename } from "path";
+import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { readdirSync, statSync, existsSync } from "fs";
 import stdLibBrowser from "node-stdlib-browser";
+import {
+  generateEntries,
+  cleanupGeneratedEntries,
+} from "../utils/entry-generator.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -11,45 +14,6 @@ interface EntryPoint {
   name: string;
   entryPath: string;
   outputDir: string;
-  cssPath?: string;
-}
-
-function discoverEntryPoints(): EntryPoint[] {
-  const augmentersDir = join(__dirname, "../augmenters");
-  const entryPoints: EntryPoint[] = [];
-
-  try {
-    const augmenters = readdirSync(augmentersDir);
-
-    for (const augmenter of augmenters) {
-      const augmenterPath = join(augmentersDir, augmenter);
-
-      // Skip if not a directory
-      if (!statSync(augmenterPath).isDirectory()) {
-        continue;
-      }
-
-      // Look for *-entry.tsx file
-      const entryFile = `${augmenter}-entry.tsx`;
-      const entryPath = join(augmenterPath, entryFile);
-
-      if (existsSync(entryPath)) {
-        const outputDir = join(augmenterPath, "bundles");
-        const cssPath = join(augmenterPath, `${augmenter}-entry.css`);
-
-        entryPoints.push({
-          name: augmenter,
-          entryPath,
-          outputDir,
-          cssPath: existsSync(cssPath) ? cssPath : undefined,
-        });
-      }
-    }
-  } catch (error) {
-    console.error("Error discovering entry points:", error);
-  }
-
-  return entryPoints;
 }
 
 async function buildBundle(entry: EntryPoint) {
@@ -68,7 +32,6 @@ async function buildBundle(entry: EntryPoint) {
       loader: {
         ".tsx": "tsx",
         ".ts": "ts",
-        ".css": "css",
       },
       define: {
         "process.env.NODE_ENV": '"production"',
@@ -92,16 +55,18 @@ async function buildBundle(entry: EntryPoint) {
 }
 
 async function buildAllBundles() {
-  console.log("Discovering augmenter entry points...\n");
+  const augmentersDir = join(__dirname, "../augmenters");
 
-  const entryPoints = discoverEntryPoints();
+  console.log("Generating entry points from components...\n");
+
+  const entryPoints = generateEntries(augmentersDir);
 
   if (entryPoints.length === 0) {
-    console.log("No entry points found. Nothing to build.");
+    console.log("No components found. Nothing to build.");
     return;
   }
 
-  console.log(`Found ${entryPoints.length} entry point(s):`);
+  console.log(`Found ${entryPoints.length} component(s):`);
   entryPoints.forEach((ep) => console.log(`  - ${ep.name}`));
   console.log("");
 
@@ -114,6 +79,10 @@ async function buildAllBundles() {
 
   console.log("\n" + "=".repeat(50));
   console.log(`Build complete: ${successCount} succeeded, ${failCount} failed`);
+
+  // Clean up generated entry files
+  console.log("\nCleaning up generated entry files...");
+  cleanupGeneratedEntries(augmentersDir);
 
   if (failCount > 0) {
     process.exit(1);
