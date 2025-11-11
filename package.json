@@ -6,9 +6,10 @@
   "scripts": {
     "build:bundles": "pnpm --filter @mcp-poc/mcp-ui-sdk build",
     "start": "pnpm --filter @mcp-poc/mcp-server start",
-    "server:dev": "pnpm --filter @mcp-poc/mcp-server dev",
-    "client:dev": "pnpm --filter @mcp-poc/mcp-client dev",
-    "dev": "pnpm build:bundles && pnpm concurrently \"pnpm --filter @mcp-poc/mcp-server dev\" \"pnpm client:dev\" --names \"SERVER,CLIENT\" --prefix-colors \"blue,green\""
+    "mcp-server:dev": "pnpm --filter @mcp-poc/mcp-server dev",
+    "mcp-client:dev": "pnpm --filter @mcp-poc/mcp-client dev",
+    "mcp-ui-app:dev": "pnpm --filter @mcp-poc/mcp-ui-app dev",
+    "dev": "pnpm build:bundles && pnpm concurrently \"pnpm --filter @mcp-poc/mcp-server dev\" \"pnpm mcp-client:dev\" \"pnpm mcp-ui-app:dev\" --names \"MCP_SERVER,MCP_CLIENT,MCP_UI_APP\" --prefix-colors \"blue,green,yellow\""
   },
   "keywords": [],
   "author": "",
