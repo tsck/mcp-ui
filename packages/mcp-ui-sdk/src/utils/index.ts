@@ -35,8 +35,8 @@ export function augmentWithUI(
     return toolResult;
   }
 
-  // Generate the full external URL
-  const externalUrl = `${MCP_UI_APP_BASE_URL}${route}`;
+  // Generate the full external URL with waitForRenderData flag
+  const externalUrl = `${MCP_UI_APP_BASE_URL}${route}?waitForRenderData=true`;
 
   // Create UI resource using @mcp-ui/server
   const uiResource = createUIResource({
@@ -48,9 +48,9 @@ export function augmentWithUI(
     encoding: "text",
   });
 
-  // Append the UI resource to the tool result content
+  // Append the UI resource to the tool result content (keep existing content like text data)
   return {
     ...toolResult,
-    content: [uiResource],
+    content: [...(toolResult.content || []), uiResource],
   };
 }

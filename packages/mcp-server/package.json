@@ -5,9 +5,8 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "start": "pnpm build:sdk && tsx src/index.ts",
-    "dev": "pnpm build:sdk && tsx watch src/index.ts",
-    "build:sdk": "pnpm --filter @mcp-poc/mcp-ui-sdk build"
+    "start": "tsx src/index.ts",
+    "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
     "@mcp-poc/mcp-ui-sdk": "workspace:*",

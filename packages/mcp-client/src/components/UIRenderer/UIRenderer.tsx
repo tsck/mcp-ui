@@ -41,6 +41,22 @@ export function UIRenderer({ response }: UIRendererProps) {
     );
   }
 
+  // Extract data from the first text content item (before the UI resource)
+  // This is the actual data from the tool (e.g., cluster metrics JSON)
+  const dataContent = response.content?.find(
+    (item: any) => item.type === "text"
+  );
+  let renderData = null;
+
+  if (dataContent && dataContent.text) {
+    try {
+      renderData = JSON.parse(dataContent.text);
+      console.log("Extracted render data for iframe:", renderData);
+    } catch (e) {
+      console.error("Failed to parse render data:", e);
+    }
+  }
+
   return (
     <div
       css={css`
@@ -60,6 +76,8 @@ export function UIRenderer({ response }: UIRendererProps) {
               minHeight: "calc(100vh - 200px)",
               border: "none",
             },
+            // Pass the extracted data - UIResourceRenderer will handle the postMessage lifecycle
+            iframeRenderData: renderData ? { data: renderData } : undefined,
           }}
         />
       </div>

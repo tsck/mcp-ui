@@ -10,9 +10,7 @@
       "require": "./src/index.ts"
     }
   },
-  "scripts": {
-    "build": "tsx src/scripts/build-augmenter-bundles.ts"
-  },
+  "scripts": {},
   "keywords": [
     "mcp",
     "model-context-protocol",
