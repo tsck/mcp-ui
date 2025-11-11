@@ -2,7 +2,7 @@
 "use client";
 
 import { ClusterMetrics } from "../../components/ClusterMetrics/ClusterMetrics";
-import { mockData } from "./mockData.js";
+import { mockData } from "./mockData";
 
 export default function ClusterMetricsPage() {
   return <ClusterMetrics data={mockData} />;

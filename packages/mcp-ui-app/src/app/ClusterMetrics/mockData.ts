@@ -1,4 +1,7 @@
-export const mockData = [
+export const mockData: Array<{
+  name: string;
+  data: Array<[string, number]>;
+}> = [
   {
     name: "cluster2-shard-00-00...27017",
     data: [
