@@ -1,4 +1,4 @@
 packages:
-  - "packages/client"
-  - "packages/server"
-  - "packages/Twig"
+  - "packages/mcp-client"
+  - "packages/mcp-server"
+  - "packages/mcp-ui-sdk"

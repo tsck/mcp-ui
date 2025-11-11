@@ -1,16 +1,16 @@
 {
-  "name": "@mcp-ui/server",
+  "name": "@mcp-poc/mcp-server",
   "version": "1.0.0",
-  "description": "MCP UI Server",
+  "description": "MCP Server",
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "start": "pnpm build:twig && tsx src/index.ts",
-    "dev": "pnpm build:twig && tsx watch src/index.ts",
-    "build:twig": "pnpm --filter @mcp-ui/twig build"
+    "start": "pnpm build:sdk && tsx src/index.ts",
+    "dev": "pnpm build:sdk && tsx watch src/index.ts",
+    "build:sdk": "pnpm --filter @mcp-poc/mcp-ui-sdk build"
   },
   "dependencies": {
-    "@mcp-ui/twig": "workspace:*",
+    "@mcp-poc/mcp-ui-sdk": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.20.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",

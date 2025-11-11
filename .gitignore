@@ -2,6 +2,4 @@ node_modules
 .env
 
 # Generated bundles
-src/server/charts-bundle.js
-src/server/Twig/bundles/chart-bundle.js
-packages/Twig/src/augmenters/*/bundles/
+packages/mcp-ui/sdk/src/bundles/

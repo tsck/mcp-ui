@@ -1,5 +1,5 @@
 {
-  "name": "@mcp-ui/client",
+  "name": "@mcp-poc/mcp-client",
   "private": true,
   "version": "0.0.0",
   "type": "module",

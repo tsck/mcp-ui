@@ -6,11 +6,7 @@ import {
   type UIActionResult,
 } from "@mcp-ui/client";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
-import {
-  sectionTitleStyle,
-  placeholderStyle,
-  uiContainerStyle,
-} from "./UIRenderer.styles";
+import { placeholderStyle, uiContainerStyle } from "./UIRenderer.styles";
 
 interface UIRendererProps {
   response: CallToolResult | null;
@@ -63,14 +59,6 @@ export function UIRenderer({ response }: UIRendererProps) {
               width: "100%",
               minHeight: "calc(100vh - 200px)",
               border: "none",
-            },
-            iframeProps: {
-              style: {
-                width: "100%",
-                minHeight: "calc(100vh - 200px)",
-                border: "none",
-                display: "block",
-              },
             },
           }}
         />

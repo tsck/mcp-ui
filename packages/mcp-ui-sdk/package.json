@@ -1,5 +1,5 @@
 {
-  "name": "@mcp-ui/twig",
+  "name": "@mcp-poc/mcp-ui-sdk",
   "version": "0.1.0",
   "description": "UI augmentation library for Model Context Protocol (MCP) servers",
   "type": "module",
@@ -24,8 +24,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/idosal/mcp-ui.git",
-    "directory": "packages/Twig"
+    "directory": "packages/mcp-ui/sdk"
   },
   "dependencies": {
     "@emotion/react": "^11.13.5",
