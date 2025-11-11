@@ -1,5 +1,5 @@
 import { CallToolResult } from "@modelcontextprotocol/sdk/types";
-import { createAugmenterRegistry } from "./utils/add-utils";
+import { createAugmenterRegistry, augmentWithUI } from "./utils/add-utils";
 import { transformData as clusterTransform } from "./microUIs/clusterMetrics/clusterMetrics.transform.js";
 
 const registry = createAugmenterRegistry()
@@ -13,6 +13,10 @@ const registry = createAugmenterRegistry()
     bundleName: "helloWorld",
   });
 
+// Keep old API for backward compatibility (for clusterMetrics)
 export const addUI = (toolResult: CallToolResult): CallToolResult => {
   return registry.augment(toolResult);
 };
+
+// Export new API for tool name-based UI augmentation
+export { augmentWithUI };

@@ -8,7 +8,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { randomUUID } from "crypto";
 import { mockData } from "./mockData";
-import { addUI } from "../../mcp-ui-sdk/src";
+import { addUI, augmentWithUI } from "../../mcp-ui-sdk/src";
 
 const app = express();
 const port = 3000;
@@ -67,10 +67,9 @@ app.post("/mcp", async (req, res) => {
       async () => {
         const result = {
           content: [{ type: "text", text: "" }],
-          uri: "data://hello-world",
         } as CallToolResult;
 
-        return addUI(result);
+        return augmentWithUI(result, { toolName: "hello-world" });
       }
     );
 
