@@ -86,7 +86,7 @@ app.post("/mcp", async (req, res) => {
           uri: "data://cluster-metrics",
         } as CallToolResult;
 
-        return addUI(result);
+        return augmentWithUI(result, { toolName: "cluster-metrics" });
       }
     );
 

@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "@lg-charts/core";
-import * as styles from "./clusterMetrics.styles";
+import * as styles from "./ClusterMetrics.styles";
 
 interface ClusterMetrics {
   name: string;

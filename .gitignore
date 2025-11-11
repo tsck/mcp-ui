@@ -1,5 +1,6 @@
 node_modules
 .env
+.pnpm-store
 
 # Generated bundles
 packages/mcp-ui-sdk/src/bundles/
