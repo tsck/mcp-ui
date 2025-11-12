@@ -76,8 +76,8 @@ export function UIRenderer({ response }: UIRendererProps) {
               minHeight: "calc(100vh - 200px)",
               border: "none",
             },
-            // Pass the extracted data - UIResourceRenderer will handle the postMessage lifecycle
-            iframeRenderData: renderData ? { data: renderData } : undefined,
+            // Pass the extracted data directly - UIResourceRenderer will handle the postMessage lifecycle
+            iframeRenderData: renderData || undefined,
           }}
         />
       </div>

@@ -11,13 +11,13 @@ import {
 } from "@lg-charts/core";
 import * as styles from "./ClusterMetrics.styles";
 
-interface ClusterMetrics {
+export interface ClusterMetric {
   name: string;
   data: Array<[string, number]>;
 }
 
-interface ClusterMetricsProps {
-  data: Array<ClusterMetrics>;
+export interface ClusterMetricsProps {
+  data: Array<ClusterMetric>;
 }
 
 export const ClusterMetrics = ({ data }: ClusterMetricsProps) => (
