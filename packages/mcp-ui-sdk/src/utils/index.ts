@@ -2,6 +2,7 @@ import { CallToolResult } from "@modelcontextprotocol/sdk/types";
 import { createUIResource } from "@mcp-ui/server";
 
 // Base URL for external micro UI app
+// const MCP_UI_APP_BASE_URL = "https://mcp-ui-mcp-ui-app.vercel.app";
 const MCP_UI_APP_BASE_URL = "http://localhost:3003";
 
 // Tool name to route mappings for external URLs
