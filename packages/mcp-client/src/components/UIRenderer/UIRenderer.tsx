@@ -41,20 +41,20 @@ export function UIRenderer({ response }: UIRendererProps) {
     );
   }
 
-  // Extract data from the first text content item (before the UI resource)
-  // This is the actual data from the tool (e.g., cluster metrics JSON)
-  const dataContent = response.content?.find(
-    (item: any) => item.type === "text"
-  );
-  let renderData = null;
+  // Extract render data from the UI resource's uiMetadata['initial-render-data']
+  // The server should have embedded the data here using augmentWithUI()
+  const renderData =
+    (uiResource as any).resource?.uiMetadata?.["initial-render-data"] || null;
 
-  if (dataContent && dataContent.text) {
-    try {
-      renderData = JSON.parse(dataContent.text);
-      console.log("Extracted render data for iframe:", renderData);
-    } catch (e) {
-      console.error("Failed to parse render data:", e);
-    }
+  if (renderData) {
+    console.log(
+      "Extracted render data from uiMetadata['initial-render-data']:",
+      renderData
+    );
+  } else {
+    console.warn(
+      "No render data found in uiMetadata['initial-render-data']. The server may not have embedded data correctly."
+    );
   }
 
   return (
