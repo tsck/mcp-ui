@@ -1,6 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "cd ../.. && pnpm install && pnpm --filter @mcp-poc/mcp-ui-app build",
-  "installCommand": "echo 'Skipping default install, using buildCommand instead'",
-  "framework": "nextjs"
+  "installCommand": "npm install -g pnpm && cd ../.. && pnpm install --no-frozen-lockfile"
 }
