@@ -3,6 +3,7 @@ import { createUIResource } from "@mcp-ui/server";
 import type {
   HelloWorldRenderData,
   ClusterMetricsRenderData,
+  ListDatabasesRenderData,
   RenderData,
 } from "../types";
 
@@ -14,6 +15,7 @@ const MCP_UI_APP_BASE_URL = "http://localhost:3003";
 const TOOL_TO_ROUTE_MAPPINGS: Record<string, string> = {
   "hello-world": "/HelloWorld",
   "cluster-metrics": "/ClusterMetrics",
+  "list-databases": "/ListDatabases",
 };
 
 /**
@@ -21,6 +23,53 @@ const TOOL_TO_ROUTE_MAPPINGS: Record<string, string> = {
  */
 interface AugmentOptions {
   toolName: string;
+}
+
+/**
+ * Extract content from untrusted-user-data tags in a tool result
+ * This is a generic utility for safely extracting user data that's wrapped in security tags
+ *
+ * @param toolResult - The CallToolResult containing text content with untrusted-user-data tags
+ * @returns The extracted content string or null if tags are not found
+ *
+ * @example
+ * ```typescript
+ * const content = extractUntrustedData(toolResult);
+ * if (content) {
+ *   // Parse the content as needed
+ *   const lines = content.split('\n');
+ * }
+ * ```
+ */
+function extractUntrustedData(toolResult: CallToolResult): string | null {
+  try {
+    // Concatenate all text content items
+    const allTextContent =
+      toolResult.content
+        ?.filter((item: any) => item.type === "text")
+        .map((item: any) => item.text)
+        .join("\n") || "";
+
+    console.log("[extractUntrustedData] All text content:", allTextContent);
+
+    // Extract content between untrusted-user-data tags
+    // Pattern matches standalone tags on their own lines (not inline mentions in warning text)
+    // Uses \n to ensure we match the actual wrapping tags, not mentions of the tags in text
+    const untrustedDataRegex =
+      /\n<untrusted-user-data-[^>]+>\n([\s\S]*?)\n<\/untrusted-user-data-[^>]+>/;
+    const match = allTextContent.match(untrustedDataRegex);
+
+    console.log("[extractUntrustedData] Regex match:", match);
+
+    if (!match || !match[1]) {
+      return null;
+    }
+
+    return match[1].trim();
+  } catch (e) {
+    console.error("Failed to extract untrusted data:", e);
+    return null;
+  }
 }
 
 /**
@@ -64,6 +113,48 @@ function extractToolData(
       return data;
     }
 
+    case "list-databases": {
+      // For list-databases, extract data from untrusted-user-data tags
+      try {
+        const untrustedContent = extractUntrustedData(toolResult);
+
+        console.log(
+          "[list-databases] Extracted untrusted content:",
+          untrustedContent
+        );
+
+        if (!untrustedContent) {
+          console.error("Failed to find untrusted-user-data tags");
+          return null;
+        }
+
+        // Parse lines matching "Name: {name}, Size: {bytes} bytes"
+        const lineRegex = /Name:\s*([^,]+),\s*Size:\s*(\d+)\s*bytes/g;
+        const databases = [];
+        let lineMatch;
+
+        while ((lineMatch = lineRegex.exec(untrustedContent)) !== null) {
+          console.log("[list-databases] Matched line:", lineMatch[0]);
+          databases.push({
+            name: lineMatch[1].trim(),
+            size: parseInt(lineMatch[2], 10),
+          });
+        }
+
+        console.log("[list-databases] Parsed databases:", databases);
+
+        const data: ListDatabasesRenderData = {
+          databases,
+          totalCount: databases.length,
+        };
+
+        return data;
+      } catch (e) {
+        console.error(`Failed to parse list-databases data:`, e);
+        return null;
+      }
+    }
+
     default:
       // For unknown tools, try to parse as JSON or return text
       try {
@@ -86,6 +177,11 @@ export function augmentWithUI(
   options: AugmentOptions
 ): CallToolResult {
   const { toolName } = options;
+
+  console.log(
+    `[augmentWithUI] Tool: ${toolName}, Result:`,
+    JSON.stringify(toolResult, null, 2)
+  );
 
   // Check if we have a mapping for this tool
   const route = TOOL_TO_ROUTE_MAPPINGS[toolName];

@@ -37,9 +37,26 @@ export interface ClusterMetricsSeries {
 export type ClusterMetricsRenderData = ClusterMetricsSeries[];
 
 /**
+ * Data structure for a single database
+ */
+export interface DatabaseInfo {
+  name: string;
+  size: number; // Size in bytes
+}
+
+/**
+ * Data structure for the list-databases tool
+ */
+export interface ListDatabasesRenderData {
+  databases: DatabaseInfo[];
+  totalCount: number;
+}
+
+/**
  * Union type of all possible render data types
  */
 export type RenderData =
   | HelloWorldRenderData
   | ClusterMetricsRenderData
+  | ListDatabasesRenderData
   | Record<string, unknown>; // Fallback for unknown tools
