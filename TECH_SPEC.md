@@ -559,7 +559,131 @@ Amplify App: [https://us-east-1.console.aws.amazon.com/amplify/apps/d26xp5ggqwqo
 
 ## Integration with MongoDB MCP Server
 
-TODO
+Integration of LeafyGreen MCP-UI with the MongoDB MCP Server occurs at the tool level, within each tool's `execute()` method. The integration follows a consistent pattern:
+
+1. **Execute the tool operation** and obtain the raw result
+2. **Transform raw data** into structured render data matching the tool's schema
+3. **Augment the tool result** with UI using `augmentWithUI()`
+4. **Return the augmented result** (or original result if augmentation fails)
+
+### Dependency Installation
+
+Add `@lg-mcp-ui/core` as a dependency to the MongoDB MCP Server:
+
+```json
+{
+  "dependencies": {
+    "@lg-mcp-ui/core": "^0.1.0"
+  }
+}
+```
+
+### Integration Pattern
+
+The integration follows a consistent pattern across all tools:
+
+```ts
+import { augmentWithUI } from "@lg-mcp-ui/core";
+import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+
+protected async execute(...args): Promise<CallToolResult> {
+  // 1. Execute the tool operation
+  const provider = await this.ensureConnected();
+  const rawData = await provider.someOperation(...args);
+
+  // 2. Transform raw data into structured render data
+  const renderData = {
+    // Transform raw MongoDB data to match schema
+    // Example: map database objects to { name, size } format
+  };
+
+  // 3. Create base tool result
+  const toolResult: CallToolResult = {
+    content: formatUntrustedData(
+      `Found ${rawData.length} items`,
+      ...rawData.map((item) => `Name: ${item.name}`)
+    ),
+  };
+
+  // 4. Augment with UI (non-blocking - failures return original result)
+  try {
+    return augmentWithUI(toolResult, {
+      toolName: this.name,
+      renderData,
+    });
+  } catch (error) {
+    // Log error but return original result
+    this.session.logger.warning({
+      id: LogId.toolExecute,
+      context: "tool",
+      message: `Failed to augment ${this.name} with UI: ${error}`,
+    });
+    return toolResult;
+  }
+}
+```
+
+### Key Integration Points
+
+#### 1. **Data Transformation**
+
+The tool must transform raw MongoDB data (which may include BSON types like `Long`, `ObjectId`, etc.) into plain JavaScript objects matching the Zod schema:
+
+- **BSON Long** → `number` (use `.toNumber()`)
+- **BSON ObjectId** → `string` (use `.toString()`)
+- **BSON Date** → `string` (use `.toISOString()`)
+- **Nested objects** → Flatten or structure according to schema
+
+#### 2. **Error Handling**
+
+UI augmentation is **non-blocking** and **non-fatal**:
+
+- If `augmentWithUI()` throws an error, the tool returns the original `CallToolResult` unchanged
+- Errors are logged but do not prevent the tool from completing successfully
+- This ensures backward compatibility and graceful degradation
+
+#### 3. **Schema Validation**
+
+`augmentWithUI()` validates `renderData` against the tool's schema before creating the UI resource:
+
+- If validation fails, the original `CallToolResult` is returned unchanged
+- Validation errors are logged as warnings
+- This ensures only valid data reaches the embeddable UI
+
+#### 4. **Tool Result Structure**
+
+The augmented result preserves the original tool result content and appends the UI resource:
+
+```ts
+// Original result
+{
+  content: [
+    { type: "text", text: "Found 3 databases" },
+    { type: "text", text: "..." }
+  ]
+}
+
+// Augmented result
+{
+  content: [
+    { type: "text", text: "Found 3 databases" },
+    { type: "text", text: "..." },
+    {
+      type: "resource",
+      resource: {
+        uri: "ui://list-databases/1234567890",
+        content: {
+          type: "externalUrl",
+          iframeUrl: "https://mcp-ui-app.example.com/ListDatabases?waitForRenderData=true"
+        },
+        uiMetadata: {
+          "initial-render-data": { databases: [...], totalCount: 3 }
+        }
+      }
+    }
+  ]
+}
+```
 
 ## Example Implementation: List Databases Embeddable UI
 
