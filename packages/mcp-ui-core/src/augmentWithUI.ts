@@ -1,4 +1,4 @@
-import { CallToolResult } from "@modelcontextprotocol/sdk/types";
+import { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { createUIResource } from "@mcp-ui/server";
 import { z } from "zod";
 import { TOOL_SCHEMAS } from "./schemas";
