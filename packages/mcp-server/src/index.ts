@@ -69,7 +69,13 @@ app.post("/mcp", async (req, res) => {
           content: [{ type: "text", text: "" }],
         } as CallToolResult;
 
-        return augmentWithUI(result, { toolName: "hello-world" });
+        return augmentWithUI(result, {
+          toolName: "hello-world",
+          renderData: {
+            message: "Hello World",
+            timestamp: new Date().toISOString(),
+          },
+        });
       }
     );
 
@@ -86,7 +92,10 @@ app.post("/mcp", async (req, res) => {
           uri: "data://cluster-metrics",
         } as CallToolResult;
 
-        return augmentWithUI(result, { toolName: "cluster-metrics" });
+        return augmentWithUI(result, {
+          toolName: "cluster-metrics",
+          renderData: mockData as unknown as Record<string, unknown>,
+        });
       }
     );
 
@@ -111,7 +120,20 @@ app.post("/mcp", async (req, res) => {
           ],
         } as CallToolResult;
 
-        return augmentWithUI(result, { toolName: "list-databases" });
+        // Hardcoded database data for the UI
+        const databases = [
+          { name: "admin", size: 245760 },
+          { name: "config", size: 49152 },
+          { name: "myapp", size: 1048576 },
+        ];
+
+        return augmentWithUI(result, {
+          toolName: "list-databases",
+          renderData: {
+            databases,
+            totalCount: databases.length,
+          },
+        });
       }
     );
 
