@@ -1,0 +1,42 @@
+# LeafyGreen MCP-UI POC Context
+
+## Primary Purpose
+
+This codebase is a **proof-of-concept** for an MCP-UI tool (`augmentWithUI.ts`) that augments MCP Server tool responses with UIResources. These UIResources point to mapped URLs where embeddable UIs are hosted.
+
+## Package Roles
+
+### Core Package (`mcp-ui-core`)
+
+- **Primary deliverable**: Contains `augmentWithUI.ts` - the core function that augments MCP Server tool responses with UIResources
+- This is the POC being developed and tested
+
+### UI Hosting (`mcp-ui-app`)
+
+- Next.js application hosting embeddable UIs
+- Each route corresponds to a tool's embeddable UI component
+- Receives render data via postMessage protocol
+
+### Testing/Demo Packages
+
+- **`mcp-server`**: Mock MCP server for testing/demonstration
+- **`mcp-client`**: Mock MCP client for testing/demonstration
+- These are NOT production code - only for POC validation
+
+### Reference Implementation (`mongodb-mcp-server`)
+
+- Clone of the actual MongoDB MCP Server
+- Represents the real MCP server that will eventually integrate with `augmentWithUI`
+- Used as reference for understanding integration patterns
+
+## Documentation
+
+- **`TECH_SPEC.md`**: Technical specification for the real implementation work
+- Contains architecture, patterns, and integration details for production implementation
+
+## Key Context
+
+- This is a POC/prototype - focus is on validating the `augmentWithUI` concept
+- The mock server/client packages exist only to test the augmentation flow
+- The MongoDB MCP Server clone shows what the real integration will look like
+- Production implementation details are in TECH_SPEC.md
