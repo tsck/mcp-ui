@@ -2,32 +2,17 @@
 "use client";
 
 import { z } from "zod";
+import { ClusterMetricsDataSchema } from "@mcp-poc/mcp-ui-sdk";
 import { useRenderData } from "../../hooks/useRenderData";
 import {
   ClusterMetrics,
   type ClusterMetricsProps,
 } from "../../components/ClusterMetrics/ClusterMetrics";
 
-// Define the data structure for a single metric series
-const ClusterMetricSchema = z.object({
-  name: z.string(),
-  data: z.array(z.tuple([z.string(), z.number()])),
-});
-
-// Schema validates against component props structure
-// Handles both array format and object-with-numeric-keys format
-// (arrays can get serialized as objects during JSON processing)
-const ClusterMetricsDataSchema = z.union([
-  z.array(ClusterMetricSchema),
-  z.record(z.string(), ClusterMetricSchema),
-]);
-
 type ClusterMetricsRawData = z.infer<typeof ClusterMetricsDataSchema>;
 
 export default function ClusterMetricsPage() {
-  const { data, isLoading, error } = useRenderData<ClusterMetricsRawData>({
-    schema: ClusterMetricsDataSchema,
-  });
+  const { data, isLoading, error } = useRenderData<ClusterMetricsRawData>();
 
   if (isLoading) {
     return <div style={{ padding: "20px" }}>Loading...</div>;

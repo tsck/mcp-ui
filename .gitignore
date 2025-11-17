@@ -5,3 +5,5 @@ package-lock.json
 
 # Generated bundles
 packages/mcp-ui-sdk/src/bundles/
+
+mongodb-mcp-server/

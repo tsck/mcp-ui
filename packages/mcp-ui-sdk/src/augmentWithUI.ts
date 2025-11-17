@@ -1,5 +1,7 @@
 import { CallToolResult } from "@modelcontextprotocol/sdk/types";
 import { createUIResource } from "@mcp-ui/server";
+import { z } from "zod";
+import { TOOL_SCHEMAS } from "./schemas";
 
 // Base URL for external micro UI app
 // const MCP_UI_APP_BASE_URL = "https://mcp-ui-mcp-ui-app.vercel.app";
@@ -44,6 +46,25 @@ export function augmentWithUI(
   if (!route) {
     // No mapping registered for this tool name
     return toolResult;
+  }
+
+  // Validate renderData against the schema for this tool (if schema exists)
+  const schema = TOOL_SCHEMAS[toolName];
+  if (schema) {
+    try {
+      schema.parse(renderData);
+      console.log(`[augmentWithUI] Validation passed for tool: ${toolName}`);
+    } catch (error) {
+      const errorMessage =
+        error instanceof z.ZodError
+          ? `Schema validation failed for tool "${toolName}": ${error.issues
+              .map((e) => e.message)
+              .join(", ")}`
+          : `Schema validation failed for tool "${toolName}"`;
+      console.warn(`[augmentWithUI] ${errorMessage}`, error);
+      // Return the tool result unmodified - validation failure prevents UI augmentation
+      return toolResult;
+    }
   }
 
   // Generate the full external URL with waitForRenderData flag
