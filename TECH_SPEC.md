@@ -1,4 +1,4 @@
-# **WIP** LeafyGreen MCP-UI SDK
+# **WIP** LeafyGreen MCP-UI
 
 Author: [Terrence Keane](mailto:terrence.keane@mongodb.com)  
 Date:
@@ -20,13 +20,13 @@ TODO
 
 The output of this project will be:
 
-1. **A working SDK** (`@lg-mcp-ui/sdk`) that can augment MongoDB MCP Server tool responses with UI resources
-2. **An example implementation** demonstrating the SDK working with the MongoDB MCP Server, rendering UI that displays the results of the `list-databases` tool.
+1. **A working package** (`@lg-mcp-ui/core`) that can augment MongoDB MCP Server tool responses with UI resources
+2. **An example implementation** demonstrating LeafyGreen MCP-UI working with the MongoDB MCP Server, rendering UI that displays the results of the `list-databases` tool.
 
 The example will showcase the complete end-to-end flow:
 
 - MongoDB MCP Server executes `list-databases` tool
-- SDK augments the response with a UIResource pointing to an embeddable UI
+- LeafyGreen MCP-UI augments the response with a `UIResource` pointing to an embeddable UI
 - Embeddable UI renders a Card component displaying the list of databases
 - Client application renders the UI pointed to in the UIResource in a sandboxed iframe
 
@@ -36,17 +36,17 @@ The example will showcase the complete end-to-end flow:
 
 # Architecture
 
-The MCP-UI SDK project will be structured as a monorepo workspace within the `leafygreen-ui` repository, following the existing package structure conventions. The project consists of three main components:
+The LeafyGreen MCP-UI project will be structured as a monorepo workspace within the `leafygreen-ui` repository, following the existing package structure conventions. The project consists of three main components:
 
 ## Package Exports
 
-### **`@lg-mcp-ui/sdk`**
+### **`@lg-mcp-ui/core`**
 
-The main SDK package exports the core `augmentWithUI()` function and types:
+The main package exports the core `augmentWithUI()` function and types:
 
 ```ts
-export { augmentWithUI } from "@lg-mcp-ui/sdk";
-export type { AugmentWithUIOptions, UIResourceMetadata } from "@lg-mcp-ui/sdk";
+export { augmentWithUI } from "@lg-mcp-ui/core";
+export type { AugmentWithUIOptions, UIResourceMetadata } from "@lg-mcp-ui/core";
 ```
 
 ### **`@lg-mcp-ui/[embeddable-ui]`**
@@ -81,7 +81,7 @@ mcp-ui/                      # All @lg-mcp-ui packages
     README.md
     tsconfig.json
 
-  mcp-ui-sdk/                # SDK package (@lg-mcp-ui/sdk)
+  core/                      # Core package (@lg-mcp-ui/core)
     src/
       index.ts               # Main export: augmentWithUI()
     package.json
@@ -109,11 +109,11 @@ MongoDB's design system components for building consistent embeddable UIs.
 
 # Implementation Details
 
-## SDK Implementation (`@lg-mcp-ui/sdk`)
+## Core Package Implementation (`@lg-mcp-ui/core`)
 
 ### **Schema Definitions**
 
-All Zod schemas for tool render data are defined in `src/schemas.ts` and exported from the SDK. This centralizes schema definitions and ensures consistency between validation at the data source and component level.
+All Zod schemas for tool render data are defined in `src/schemas.ts` and exported from the package. This centralizes schema definitions and ensures consistency between validation at the data source and component level.
 
 **Example:**
 
@@ -138,7 +138,7 @@ export const TOOL_SCHEMAS: Record<string, z.ZodType<unknown>> = {
 
 ### **`augmentWithUI()` Function**
 
-The primary entry point for the SDK. This function takes a `CallToolResult` and augments it with a `UIResource` if a corresponding embeddable UI exists for the tool call.
+The primary entry point for LeafyGreen MCP-UI. This function takes a `CallToolResult` and augments it with a `UIResource` if a corresponding embeddable UI exists for the tool call.
 
 ```ts
 function augmentWithUI(
@@ -173,7 +173,7 @@ function augmentWithUI(
 
 #### Validation
 
-The SDK validates `renderData` against the schema defined for each tool before creating the UI resource. This ensures data integrity at the source:
+LeafyGreen MCP-UI validates `renderData` against the schema defined for each tool before creating the UI resource. This ensures data integrity at the source:
 
 ```ts
 // Validate renderData against the schema for this tool (if schema exists)
@@ -197,7 +197,7 @@ if (schema) {
 ```
 
 **UIResource Creation**  
-The SDK internally uses `@mcp-ui/server`'s `createUIResource` function.
+LeafyGreen MCP-UI internally uses `@mcp-ui/server`'s `createUIResource` function.
 
 #### Implementation Details
 
@@ -220,8 +220,8 @@ const renderData = {
   totalCount: 3,
 };
 
-// SDK validates renderData against ListDatabasesDataSchema
-// SDK creates UIResource with validated renderData
+// LeafyGreen MCP-UI validates renderData against ListDatabasesDataSchema
+// LeafyGreen MCP-UI creates UIResource with validated renderData
 const uiResource = createUIResource({
   uri: `ui://list-databases/${Date.now()}`,
   content: {
@@ -246,8 +246,8 @@ When an embeddable UI needs to display data:
 
 1. MCP server extracts and transforms tool result into structured render data
 2. MCP server calls `augmentWithUI()` with the render data
-3. **SDK validates renderData against schema** (if schema exists for the tool)
-4. SDK creates `UIResource` with validated render data embedded in `uiMetadata['initial-render-data']`
+3. **LeafyGreen MCP-UI validates renderData against schema** (if schema exists for the tool)
+4. LeafyGreen MCP-UI creates `UIResource` with validated render data embedded in `uiMetadata['initial-render-data']`
 5. Client renders the iframe using `UIResourceRenderer` from `@mcp-ui/client`
 6. Embeddable UI component listens for `ui-lifecycle-iframe-render-data` message
 7. Embeddable UI receives structured render data via `event.data.payload.renderData`
@@ -305,7 +305,7 @@ When an embeddable UI needs to trigger an action (e.g., form submission):
 4. MCP server executes tool (with proper authentication/authorization)
 5. MCP server extracts/transforms result data into render data
 6. MCP server augments result with `augmentWithUI()` passing render data directly
-7. **SDK validates renderData against schema** before creating UI resource
+7. **LeafyGreen MCP-UI validates renderData against schema** before creating UI resource
 8. Client extracts render data and sends it back to iframe via read flow above
 9. **Component validates props against schema** before rendering
 
@@ -403,8 +403,8 @@ The hook implements multiple validation layers:
 
 **Note:** Schema validation is handled at two layers:
 
-1. **Data source** (`augmentWithUI` in SDK) \- validates `renderData` before creating UI resources
-2. **Component level** \- components validate their props using schemas imported from the SDK
+1. **Data source** (`augmentWithUI` in LeafyGreen MCP-UI) \- validates `renderData` before creating UI resources
+2. **Component level** \- components validate their props using schemas imported from the package
 
 #### API
 
@@ -447,7 +447,7 @@ export default function HelloWorldPage() {
 ```ts
 // src/app/list-databases/page.tsx
 import { z } from "zod";
-import { ListDatabasesDataSchema } from "@lg-mcp/mcp-ui-sdk";
+import { ListDatabasesDataSchema } from "@lg-mcp-ui/core";
 import { useRenderData } from "@/hooks/useRenderData";
 
 // Use schema for type inference
@@ -471,13 +471,13 @@ export default function ListDatabasesPage() {
 
 ### **Component-Level Validation**
 
-#### Components validate their props using schemas imported from the SDK. This provides a second layer of validation and ensures components only render with valid data.
+#### Components validate their props using schemas imported from LeafyGreen MCP-UI. This provides a second layer of validation and ensures components only render with valid data.
 
 #### **Example: Component with Validation**
 
 ```ts
 // src/components/ListDatabases/ListDatabases.tsx
-import { DatabaseInfoSchema } from "@lg-mcp/mcp-ui-sdk";
+import { DatabaseInfoSchema } from "@lg-mcp-ui/core";
 import { z } from "zod";
 
 export interface ListDatabasesProps {
@@ -510,7 +510,7 @@ export const ListDatabases = ({ databases }: ListDatabasesProps) => {
 
 **Schema Design:**
 
-- **Centralized schemas**: All schemas are defined in the SDK (`@lg-mcp-ui/mcp-ui-sdk`) and exported for use in both SDK validation and component validation
+- **Centralized schemas**: All schemas are defined in LeafyGreen MCP-UI (`@lg-mcp-ui/core`) and exported for use in both package validation and component validation
 - **Schema matches props**: Zod schemas validate the exact structure the component expects
 - **No transformation layer**: MCP server data should match component props directly, eliminating the need for data transformation in the page component
 - **Type from schema**: Use `z.infer<typeof Schema>` for TypeScript type inference
@@ -518,14 +518,14 @@ export const ListDatabases = ({ databases }: ListDatabasesProps) => {
 **Validation Strategy:**
 
 - **Two-layer validation**:
-  1. SDK validates at data source (`augmentWithUI`) before creating UI resources
+  1. LeafyGreen MCP-UI validates at data source (`augmentWithUI`) before creating UI resources
   2. Components validate props before rendering
-- **Shared schemas**: Schemas are exported from the SDK and reused across validation layers
+- **Shared schemas**: Schemas are exported from the package and reused across validation layers
 - **Error handling**: Both layers handle validation errors gracefully, logging errors and displaying user-friendly error messages
 
 #### TypeScript Support
 
-The hook is fully typed and accepts a generic type parameter. Types can be inferred from schemas using `z.infer<>` or defined manually. Components import schemas from the SDK for both validation and type inference.
+The hook is fully typed and accepts a generic type parameter. Types can be inferred from schemas using `z.infer<>` or defined manually. Components import schemas from LeafyGreen MCP-UI for both validation and type inference.
 
 ### **Configuration**
 
@@ -551,7 +551,7 @@ MCP clients operate from diverse, unpredictable origins (Electron apps, browser 
 
 #### Environment Variables
 
-- `NEXT_PUBLIC_BASE_URL`: Base URL for the hosted application (used by SDK for iframe URL generation)
+- `NEXT_PUBLIC_BASE_URL`: Base URL for the hosted application (used by LeafyGreen MCP-UI for iframe URL generation)
 - `ALLOWED_ORIGINS` (optional): For enterprise deployments requiring origin restrictions
 
 Hosting: [https://us-east-1.console.aws.amazon.com/amplify/apps](https://us-east-1.console.aws.amazon.com/amplify/apps)  
@@ -627,7 +627,7 @@ export type { ListDatabasesProps } from "./ListDatabases.types";
 ```ts
 // apps/mcp-ui-app/src/app/list-databases/page.tsx
 import { z } from "zod";
-import { ListDatabasesDataSchema } from "@lg-mcp-ui/mcp-ui-sdk";
+import { ListDatabasesDataSchema } from "@lg-mcp-ui/core";
 import { useRenderData } from "@/hooks/useRenderData";
 import { ListDatabases } from "@/components/ListDatabases";
 
@@ -734,7 +734,7 @@ The permissive headers (`Access-Control-Allow-Origin: *`, `frame-ancestors *`) a
 
 ## External URL Registration
 
-For the MVP, all tool-to-UI mappings are owned and managed internally by the SDK. In the future, we may want to support registration of external URLs for teams that host their own embeddable UIs outside of the `mcp-ui-app` infrastructure.
+For the MVP, all tool-to-UI mappings are owned and managed internally by LeafyGreen MCP-UI. In the future, we may want to support registration of external URLs for teams that host their own embeddable UIs outside of the `mcp-ui-app` infrastructure.
 
 **Potential Future API**:
 
@@ -779,7 +779,7 @@ TODO
 
 ## Related MongoDB Projects
 
-- [MongoDB MCP Server](https://github.com/mongodb-js/mongodb-mcp-server) \- The MongoDB MCP server that will integrate this SDK
+- [MongoDB MCP Server](https://github.com/mongodb-js/mongodb-mcp-server) \- The MongoDB MCP server that will integrate LeafyGreen MCP-UI
 - [LeafyGreen UI Design System](https://github.com/mongodb/leafygreen-ui) \- Design system components used in embeddable UIs
 
 ## Technical References
@@ -809,7 +809,7 @@ TODO
 - TK: How do we handle darkmode?
 - TK: What are the specific CORS considerations that are needed? Is it ok from a security standpoint?
 - TK: What’s the best location in the MCP Server to proxy responses?
-- Is this actually an “SDK”
+- ~~Is this actually an "SDK"~~ (Resolved: Named "LeafyGreen MCP-UI" with core package `@lg-mcp-ui/core`)
 
 # TK TODO:
 
