@@ -2,7 +2,7 @@
 import React from "react";
 import { Card } from "@leafygreen-ui/card";
 import { H1 } from "@leafygreen-ui/typography";
-import { DatabaseInfoSchema } from "@mcp-poc/mcp-ui-sdk";
+import { DatabaseInfoSchema } from "@mcp-poc/core";
 import { z } from "zod";
 import * as styles from "./ListDatabases.styles";
 

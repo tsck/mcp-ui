@@ -2,7 +2,7 @@
 "use client";
 
 import { z } from "zod";
-import { ListDatabasesDataSchema } from "@mcp-poc/mcp-ui-sdk";
+import { ListDatabasesDataSchema } from "@mcp-poc/core";
 import { useRenderData } from "../../hooks/useRenderData";
 import { ListDatabases } from "../../components/ListDatabases/ListDatabases";
 

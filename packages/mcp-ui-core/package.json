@@ -1,5 +1,5 @@
 {
-  "name": "@mcp-poc/mcp-ui-sdk",
+  "name": "@mcp-poc/core",
   "version": "0.1.0",
   "description": "UI augmentation library for Model Context Protocol (MCP) servers",
   "type": "module",

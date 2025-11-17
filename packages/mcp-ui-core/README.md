@@ -19,7 +19,7 @@ This decouples data extraction logic from the client and keeps it close to the t
 ## Installation
 
 ```bash
-npm install @mcp-poc/mcp-ui-sdk
+npm install @mcp-poc/core
 ```
 
 ## Usage
@@ -27,7 +27,7 @@ npm install @mcp-poc/mcp-ui-sdk
 ### Basic Example
 
 ```typescript
-import { augmentWithUI } from "@mcp-poc/mcp-ui-sdk";
+import { augmentWithUI } from "@mcp-poc/core";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types";
 
 // In your MCP tool handler
@@ -115,7 +115,7 @@ import type {
   ClusterMetricsSeries,
   ClusterMetricsDataPoint,
   RenderData,
-} from "@mcp-poc/mcp-ui-sdk";
+} from "@mcp-poc/core";
 ```
 
 ### Example Type Definitions
@@ -209,7 +209,7 @@ Create your UI component in the `mcp-ui-app` package:
 "use client";
 
 import { useRenderData } from "@/hooks/useRenderData";
-import type { YourNewToolRenderData } from "@mcp-poc/mcp-ui-sdk";
+import type { YourNewToolRenderData } from "@mcp-poc/core";
 
 export default function YourNewToolPage() {
   const { data, isLoading, error } = useRenderData<YourNewToolRenderData>();
@@ -282,7 +282,7 @@ The MCP-UI specification defines `uiMetadata['initial-render-data']` as the stan
 ```
 mcp-ui (monorepo)
 ├── packages/
-│   ├── mcp-ui-sdk/          # This package
+│   ├── mcp-ui-core/          # This package
 │   │   ├── src/
 │   │   │   ├── utils/
 │   │   │   │   └── index.ts      # augmentWithUI implementation

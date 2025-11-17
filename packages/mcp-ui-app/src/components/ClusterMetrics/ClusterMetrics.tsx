@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "@lg-charts/core";
-import { ClusterMetricSchema } from "@mcp-poc/mcp-ui-sdk";
+import { ClusterMetricSchema } from "@mcp-poc/core";
 import { z } from "zod";
 import * as styles from "./ClusterMetrics.styles";
 

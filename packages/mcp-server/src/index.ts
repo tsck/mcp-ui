@@ -8,7 +8,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { randomUUID } from "crypto";
 import { mockData } from "./mockData";
-import { augmentWithUI } from "../../mcp-ui-sdk/src";
+import { augmentWithUI } from "../../mcp-ui-core/src";
 
 const app = express();
 const port = 3000;

@@ -9,7 +9,7 @@
     "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
-    "@mcp-poc/mcp-ui-sdk": "workspace:*",
+    "@mcp-poc/core": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.20.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",

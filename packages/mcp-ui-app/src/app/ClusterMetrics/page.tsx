@@ -2,7 +2,7 @@
 "use client";
 
 import { z } from "zod";
-import { ClusterMetricsDataSchema } from "@mcp-poc/mcp-ui-sdk";
+import { ClusterMetricsDataSchema } from "@mcp-poc/core";
 import { useRenderData } from "../../hooks/useRenderData";
 import {
   ClusterMetrics,
