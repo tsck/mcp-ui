@@ -854,7 +854,47 @@ The permissive headers (`Access-Control-Allow-Origin: *`, `frame-ancestors *`) a
 
 # TODO
 
+# Known Limitations
+
+## Dark Mode Support
+
+**Status**: Dark mode is **not supported** in the current implementation.
+
+### The Problem
+
+Embeddable UIs are rendered in cross-origin iframes, which creates fundamental constraints for theme detection:
+
+1. **No access to parent window**: Iframes cannot access parent window styles or theme state due to cross-origin restrictions
+2. **No control over host applications**: Host applications use `UIResourceRenderer` from `@mcp-ui/client` directly - we cannot modify their code
+3. **System preference detection causes hydration mismatches**: When using `prefers-color-scheme` media query, the server renders with one theme (typically light mode as a default), but the client immediately detects the user's system preference and switches to a different theme. This mismatch between server-rendered HTML and client-rendered content causes React hydration errors and inconsistent initial renders across different user environments (some users see a flash of light mode before switching to dark, others see the opposite)
+
+### Why We Can't Solve This Now
+
+Any solution that would enable dark mode would require one of the following:
+
+- **Host app modifications**: Requiring host applications to implement theme communication (postMessage, URL parameters, etc.) is not viable since we have no control over host application code
+- **Standardized protocol**: The mcp-ui specification does not currently define a standard way for host applications to communicate theme preferences to embedded UIs
+- **Framework-level support**: There's no established pattern in the MCP-UI ecosystem for theme synchronization between host and embedded UIs
+
+### Current Implementation
+
+Embeddable UIs default to **light mode** to ensure:
+
+- Consistent, predictable rendering across all host applications
+- No hydration mismatches or rendering inconsistencies
+- Zero configuration required from host applications
+
+Until then, embeddable UIs will render in light mode only.
+
 # Future Considerations
+
+## Dark Mode Support
+
+Dark mode support may become feasible if:
+
+1. The mcp-ui specification defines a standard theme communication protocol
+2. Host applications begin implementing theme communication in a consistent way
+3. A framework-level solution emerges that doesn't require host app modifications
 
 ## External URL Registration
 
@@ -930,7 +970,7 @@ TODO
   - From my understanding, micro UIs will be static UIs (defined in this article: [https://www.copilotkit.ai/blog/the-three-kinds-of-generative-ui](https://www.copilotkit.ai/blog/the-three-kinds-of-generative-ui) )
 - TK: What does the actual MDB MPC server response look like?
   - TK: Will mapping to toolname make sense or should it map to something else
-- TK: How do we handle darkmode?
+- ~~TK: How do we handle darkmode?~~ (Resolved: Dark mode is not supported - see [Known Limitations](#known-limitations))
 - TK: What are the specific CORS considerations that are needed? Is it ok from a security standpoint?
 - TK: What’s the best location in the MCP Server to proxy responses?
 - ~~Is this actually an "SDK"~~ (Resolved: Named "LeafyGreen MCP-UI" with core package `@lg-mcp-ui/core`)
