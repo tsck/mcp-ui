@@ -866,24 +866,70 @@ Storybook is the primary development tool for testing embeddable UI components. 
 
 A custom decorator (`mcpClientDecorator`) simulates the MCP client's `postMessage` behavior. It listens for `ui-lifecycle-iframe-ready` messages and responds with `ui-lifecycle-iframe-render-data` containing mock render data. This allows components using `useRenderData()` to work in Storybook without a real MCP client.
 
-**Writing Stories:**
+**Implementation:**
 
-- **Direct components** (with props): Write standard Storybook stories with `args`
-- **Page components** (using `useRenderData`): Use `createMCPClientDecorator()` or configure `renderData` via story args
+The decorator must be implemented as a Storybook decorator function that:
 
-**Example:**
+1. **Sets up message listener**: Listens for `ui-lifecycle-iframe-ready` messages from the component
+2. **Responds with render data**: Sends `ui-lifecycle-iframe-render-data` message containing mock data
+3. **Handles cleanup**: Removes event listeners when the story unmounts
+4. **Supports configuration**: Accepts render data as a parameter
+
+**Usage in Stories:**
 
 ```ts
-// For components using useRenderData()
+// ListDatabases.stories.tsx
+import type { Meta, StoryObj } from "@storybook/react";
+import { createMCPClientDecorator } from "../.storybook/decorators/mcpClientDecorator";
+import ListDatabasesPage from "./ListDatabasesPage";
+
+const meta: Meta<typeof ListDatabasesPage> = {
+  title: "Pages/ListDatabases",
+  component: ListDatabasesPage,
+};
+
+export default meta;
+type Story = StoryObj<typeof ListDatabasesPage>;
+
+// Story using useRenderData hook
 export const Default: Story = {
   decorators: [
     createMCPClientDecorator({
-      databases: [{ name: "admin", size: 245760 }],
+      databases: [
+        { name: "admin", size: 245760 },
+        { name: "config", size: 73728 },
+        { name: "local", size: 73728 },
+      ],
+      totalCount: 3,
+    }),
+  ],
+};
+
+// Story with empty data
+export const Empty: Story = {
+  decorators: [
+    createMCPClientDecorator({
+      databases: [],
+      totalCount: 0,
+    }),
+  ],
+};
+
+// Story with single database
+export const SingleDatabase: Story = {
+  decorators: [
+    createMCPClientDecorator({
+      databases: [{ name: "myDatabase", size: 1024000 }],
       totalCount: 1,
     }),
   ],
 };
 ```
+
+**Writing Stories:**
+
+- **Direct components** (with props): Write standard Storybook stories with `args`
+- **Page components** (using `useRenderData`): Use `createMCPClientDecorator()` with mock render data matching your component's expected schema
 
 ## Production Demo Setup
 
@@ -895,11 +941,44 @@ Production demo requires:
 2. **`mcp-ui-app`** deployed to a public URL (e.g., Vercel, AWS Amplify)
 3. **MCP Client** that supports the mcp-ui specification (implements `UIResourceRenderer` from `@mcp-ui/client`)
 
-**Finding MCP Clients:**
+Some investigation will need to be done to see if a known client has the mcp-ui spec fully implemented and to ultimately get it working. If there is none, we may need to build out own for demonstration purposes.
 
-- Check Claude Desktop, Cline, or other LLM clients for mcp-ui support
-- Build a custom client using `@mcp-ui/client` SDK
-- See [mcp-ui specification](https://mcpui.dev/guide/introduction) for client requirements
+**MCP Clients with mcp-ui Support:**
+
+Several MCP-compatible clients support rendering mcp-ui resources. Feature support varies by client:
+
+| Client                                                      | Rendering | UI Actions | Notes                                                                                                     |
+| :---------------------------------------------------------- | :-------: | :--------: | :-------------------------------------------------------------------------------------------------------- |
+| [Nanobot](https://www.nanobot.ai/)                          |    ✅     |     ✅     | Full support for rendering and UI actions                                                                 |
+| [ChatGPT](https://chatgpt.com/)                             |    ✅     |     ⚠️     | Rendering supported; UI actions partially supported. See [mcp-ui guide](https://mcpui.dev/guide/apps-sdk) |
+| [Postman](https://www.postman.com/)                         |    ✅     |     ⚠️     | Rendering supported; UI actions partially supported                                                       |
+| [Goose](https://block.github.io/goose/)                     |    ✅     |     ⚠️     | Rendering supported; UI actions partially supported                                                       |
+| [LibreChat](https://www.librechat.ai/)                      |    ✅     |     ⚠️     | Rendering supported; UI actions partially supported                                                       |
+| [Smithery](https://smithery.ai/playground)                  |    ✅     |     ❌     | Rendering supported; UI actions not yet supported                                                         |
+| [MCPJam](https://www.mcpjam.com/)                           |    ✅     |     ❌     | Rendering supported; UI actions not yet supported                                                         |
+| [fast-agent](https://fast-agent.ai/mcp/mcp-ui/)             |    ✅     |     ❌     | Rendering supported; UI actions not yet supported                                                         |
+| [VSCode](https://github.com/microsoft/vscode/issues/260218) |     ?     |     ?      | Support planned (TBA)                                                                                     |
+
+**Legend:**
+
+- ✅: Fully Supported
+- ⚠️: Partially Supported
+- ❌: Not Supported (yet)
+- ?: Planned/Unknown
+
+**Testing Tool:**
+
+For local development and testing, use [ui-inspector](https://github.com/idosal/ui-inspector), a dedicated testing tool for mcp-ui-enabled servers:
+
+1. Clone and run ui-inspector locally
+2. Connect to your local MCP server endpoint
+3. Execute tools and verify UI rendering
+
+**Building a Custom MCP Client:**
+
+If we need to build a custom MCP client with mcp-ui support, use the `@mcp-ui/client` SDK:
+
+For more details, see the [mcp-ui client documentation](https://mcpui.dev/guide/client/overview) and [React usage examples](https://mcpui.dev/guide/client/react-usage-examples).
 
 ### Deployment Steps
 
