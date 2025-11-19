@@ -852,7 +852,68 @@ The permissive headers (`Access-Control-Allow-Origin: *`, `frame-ancestors *`) a
 
 # Development and Testing
 
-# TODO
+## Overview
+
+This section outlines the testing strategy and development workflow for LeafyGreen MCP-UI, covering both local development testing and production demo requirements.
+
+## Development Testing Workflow
+
+### Storybook for Component Development
+
+Storybook is the primary development tool for testing embeddable UI components. It provides an isolated environment with MCP client simulation via a custom decorator that sends `postMessage` events.
+
+**MCP Client Decorator:**
+
+A custom decorator (`mcpClientDecorator`) simulates the MCP client's `postMessage` behavior. It listens for `ui-lifecycle-iframe-ready` messages and responds with `ui-lifecycle-iframe-render-data` containing mock render data. This allows components using `useRenderData()` to work in Storybook without a real MCP client.
+
+**Writing Stories:**
+
+- **Direct components** (with props): Write standard Storybook stories with `args`
+- **Page components** (using `useRenderData`): Use `createMCPClientDecorator()` or configure `renderData` via story args
+
+**Example:**
+
+```ts
+// For components using useRenderData()
+export const Default: Story = {
+  decorators: [
+    createMCPClientDecorator({
+      databases: [{ name: "admin", size: 245760 }],
+      totalCount: 1,
+    }),
+  ],
+};
+```
+
+## Production Demo Setup
+
+### Requirements
+
+Production demo requires:
+
+1. **`@lg-mcp-ui/core`** published to npm and integrated into MongoDB MCP Server
+2. **`mcp-ui-app`** deployed to a public URL (e.g., Vercel, AWS Amplify)
+3. **MCP Client** that supports the mcp-ui specification (implements `UIResourceRenderer` from `@mcp-ui/client`)
+
+**Finding MCP Clients:**
+
+- Check Claude Desktop, Cline, or other LLM clients for mcp-ui support
+- Build a custom client using `@mcp-ui/client` SDK
+- See [mcp-ui specification](https://mcpui.dev/guide/introduction) for client requirements
+
+### Deployment Steps
+
+1. Deploy `mcp-ui-app` to public URL
+2. Update `MCP_UI_APP_BASE_URL` in `augmentWithUI.ts` (or use environment variable)
+3. Publish `@lg-mcp-ui/core` to npm
+4. Integrate `@lg-mcp-ui/core` into MongoDB MCP Server
+5. Connect MCP client (with mcp-ui support) to MongoDB MCP Server
+6. Execute tools in chat interface and verify UI renders correctly
+
+### Demo Scenarios
+
+- **List Databases**: Execute `list-databases` → Display database list in Card component
+- **Error Handling**: Invalid data → Graceful degradation (text-only response)
 
 # Known Limitations
 
