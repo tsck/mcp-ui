@@ -12,10 +12,6 @@ Date:
 | TBD      | 🚧                |
 | TBD      | 🚧                |
 
-# Glossary
-
-TODO
-
 # Goals
 
 The output of this project will be:
@@ -227,11 +223,11 @@ const uiResource = createUIResource({
   content: {
     type: "externalUrl",
     iframeUrl:
-      "https://mcp-ui-mcp-ui-app.vercel.app/ListDatabases?waitForRenderData=true",
+      "https://mcp-ui-mcp-ui-app.vercel.app/list-databases?waitForRenderData=true",
   },
   encoding: "text",
-  uiMetadata: {
-    "initial-render-data": renderData,
+  metadata: {
+    "mcpui.dev/ui-initial-render-data": renderData,
   },
 });
 ```
@@ -308,6 +304,59 @@ When an embeddable UI needs to trigger an action (e.g., form submission):
 7. **LeafyGreen MCP-UI validates renderData against schema** before creating UI resource
 8. Client extracts render data and sends it back to iframe via read flow above
 9. **Component validates props against schema** before rendering
+
+#### Client Data Passing Assumptions
+
+**Important**: The mcp-ui specification is still evolving, and certain aspects of client implementation are not fully standardized. LeafyGreen MCP-UI makes the following assumptions about how MCP clients handle data:
+
+1. **Metadata Structure**:
+   - UIResource metadata is stored in the `_meta` field of the resource object
+   - MCP-UI specific metadata uses the prefix `mcpui.dev/ui-`
+   - Example structure:
+
+```ts
+   {
+     type: 'resource',
+     resource: {
+       uri: 'ui://...',
+       mimeType: '...',
+       text: '...',
+       _meta: {
+         'mcpui.dev/ui-initial-render-data': { /* render data */ },
+         'mcpui.dev/ui-preferred-frame-size': ['800px', '600px'],
+         title: 'My Component' // standard metadata
+       }
+     }
+   }
+```
+
+2. **Data Extraction**:
+
+   - We assume that MCP clients will extract render data from `_meta['mcpui.dev/ui-initial-render-data']` in the UIResource
+   - Clients may use the `@mcp-ui/client` utility functions:
+     - `getResourceMetadata(resource)` \- extracts all `_meta` content
+     - `getUIResourceMetadata(resource)` \- extracts only `mcpui.dev/ui-*` fields (with prefixes removed)
+
+3. **Data Forwarding**:
+   - We assume clients will pass the extracted render data to the iframe via postMessage
+   - Expected message format:
+
+```ts
+   {
+     type: 'ui-lifecycle-iframe-render-data',
+     payload: {
+       renderData: { /* the data from _meta['mcpui.dev/ui-initial-render-data'] */ }
+     }
+   }
+```
+
+4. **Timing**:
+   - We assume clients will wait for the `ui-lifecycle-iframe-ready` message from the iframe before sending render data
+   - The `?waitForRenderData=true` query parameter signals this requirement
+
+**Rationale**: While the [mcp-ui embeddable UI specification](https://mcpui.dev/guide/embeddable-ui#message-types) defines the postMessage protocol, the exact mechanism for how clients extract and forward `_meta['mcpui.dev/ui-initial-render-data']` to iframes is an implementation detail. Our implementation follows the pattern established by the `@mcp-ui/client` SDK and the metadata structure documented in the mcp-ui client overview.
+
+**Impact**: If clients implement different data passing mechanisms, embeddable UIs may not receive render data correctly. This is a known risk given the early-stage nature of the mcp-ui ecosystem. For more context on the current state of mcp-ui client support, see [Current State of mcp-ui Ecosystem](#current-state-of-mcp-ui-ecosystem).
 
 **Message Structure (Iframe → Parent):**
 
@@ -566,7 +615,7 @@ Integration of LeafyGreen MCP-UI with the MongoDB MCP Server occurs at the tool 
 3. **Augment the tool result** with UI using `augmentWithUI()`
 4. **Return the augmented result** (or original result if augmentation fails)
 
-### Dependency Installation
+### **Dependency Installation**
 
 Add `@lg-mcp-ui/core` as a dependency to the MongoDB MCP Server:
 
@@ -578,7 +627,7 @@ Add `@lg-mcp-ui/core` as a dependency to the MongoDB MCP Server:
 }
 ```
 
-### Integration Pattern
+### **Integration Pattern**
 
 The integration follows a consistent pattern across all tools:
 
@@ -623,9 +672,9 @@ protected async execute(...args): Promise<CallToolResult> {
 }
 ```
 
-### Key Integration Points
+### **Key Integration Points**
 
-#### 1. **Data Transformation**
+#### 1\. **Data Transformation**
 
 The tool must transform raw MongoDB data (which may include BSON types like `Long`, `ObjectId`, etc.) into plain JavaScript objects matching the Zod schema:
 
@@ -634,7 +683,7 @@ The tool must transform raw MongoDB data (which may include BSON types like `Lon
 - **BSON Date** → `string` (use `.toISOString()`)
 - **Nested objects** → Flatten or structure according to schema
 
-#### 2. **Error Handling**
+#### 2\. **Error Handling**
 
 UI augmentation is **non-blocking** and **non-fatal**:
 
@@ -642,7 +691,7 @@ UI augmentation is **non-blocking** and **non-fatal**:
 - Errors are logged but do not prevent the tool from completing successfully
 - This ensures backward compatibility and graceful degradation
 
-#### 3. **Schema Validation**
+#### 3\. **Schema Validation**
 
 `augmentWithUI()` validates `renderData` against the tool's schema before creating the UI resource:
 
@@ -650,7 +699,7 @@ UI augmentation is **non-blocking** and **non-fatal**:
 - Validation errors are logged as warnings
 - This ensures only valid data reaches the embeddable UI
 
-#### 4. **Tool Result Structure**
+#### 4\. **Tool Result Structure**
 
 The augmented result preserves the original tool result content and appends the UI resource:
 
@@ -858,7 +907,7 @@ This section outlines the testing strategy and development workflow for LeafyGre
 
 ## Development Testing Workflow
 
-### Storybook for Component Development
+### **Storybook for Component Development**
 
 Storybook is the primary development tool for testing embeddable UI components. It provides an isolated environment with MCP client simulation via a custom decorator that sends `postMessage` events.
 
@@ -933,7 +982,7 @@ export const SingleDatabase: Story = {
 
 ## Production Demo Setup
 
-### Requirements
+### **Requirements**
 
 Production demo requires:
 
@@ -943,7 +992,71 @@ Production demo requires:
 
 Some investigation will need to be done to see if a known client has the mcp-ui spec fully implemented and to ultimately get it working. If there is none, we may need to build out own for demonstration purposes.
 
-**MCP Clients with mcp-ui Support:**
+For more information on the current state of mcp-ui client support and ecosystem limitations, see [Current State of mcp-ui Ecosystem](#mcp-clients-with-mcp-ui-support).
+
+**Testing Tool:**
+
+For local development and testing, use [ui-inspector](https://github.com/idosal/ui-inspector), a dedicated testing tool for mcp-ui-enabled servers:
+
+1. Clone and run ui-inspector locally
+2. Connect to your local MCP server endpoint
+3. Execute tools and verify UI rendering
+
+**Building a Custom MCP Client:**
+
+If we need to build a custom MCP client with mcp-ui support, use the `@mcp-ui/client` SDK:
+
+For more details, see the [mcp-ui client documentation](https://mcpui.dev/guide/client/overview) and [React usage examples](https://mcpui.dev/guide/client/react-usage-examples).
+
+### **Deployment Steps**
+
+1. Deploy `mcp-ui-app` to public URL
+2. Update `MCP_UI_APP_BASE_URL` in `augmentWithUI.ts` (or use environment variable)
+3. Publish `@lg-mcp-ui/core` to npm
+4. Integrate `@lg-mcp-ui/core` into MongoDB MCP Server
+5. Connect MCP client (with mcp-ui support) to MongoDB MCP Server
+6. Execute tools in chat interface and verify UI renders correctly
+
+### **Demo Scenarios**
+
+- **List Databases**: Execute `list-databases` → Display database list in Card component
+- **Error Handling**: Invalid data → Graceful degradation (text-only response)
+
+# Current State of mcp-ui Ecosystem
+
+**Status**: The mcp-ui specification is still in early stages, and client support is limited and incomplete.
+
+## Key Observations
+
+1. **Limited Client Adoption**: Most LLM clients and MCP-compatible applications do not yet support mcp-ui rendering or UI actions.
+
+2. **Incomplete Implementations**: Even among clients that claim mcp-ui support, implementations are often partial:
+
+   - Many support basic rendering but lack full UI action support
+   - Data passing mechanisms may vary between implementations
+   - Some clients may not fully implement the postMessage protocol as specified
+
+3. **Spec Evolution**: The mcp-ui specification itself is still evolving, which means:
+   - Our implementation follows the spec as we understand it, but the spec may change
+   - Client implementations may diverge from the spec as they adapt to their own needs
+   - Future spec updates may require changes to our implementation
+
+## Implications for LeafyGreen MCP-UI
+
+- **Spec Compliance**: We are building to be spec-compliant based on the current mcp-ui specification and `@mcp-ui/client` SDK patterns, but cannot guarantee compatibility with all current or future client implementations.
+
+- **Testing Challenges**: Limited client support makes comprehensive testing difficult. We rely on:
+
+  - The `@mcp-ui/client` SDK as a reference implementation
+  - Local testing tools like `ui-inspector`
+  - Custom mock clients for development
+
+- **Future Adaptability**: As the ecosystem matures and more clients implement mcp-ui support, we may need to:
+  - Adjust our data passing assumptions (see [Client Data Passing Assumptions](#client-data-passing-assumptions))
+  - Update implementation details to match actual client behavior
+  - Add compatibility layers for different client implementations
+
+## MCP Clients with mcp-ui Support {#mcp-clients-with-mcp-ui-support}
 
 Several MCP-compatible clients support rendering mcp-ui resources. Feature support varies by client:
 
@@ -966,33 +1079,7 @@ Several MCP-compatible clients support rendering mcp-ui resources. Feature suppo
 - ❌: Not Supported (yet)
 - ?: Planned/Unknown
 
-**Testing Tool:**
-
-For local development and testing, use [ui-inspector](https://github.com/idosal/ui-inspector), a dedicated testing tool for mcp-ui-enabled servers:
-
-1. Clone and run ui-inspector locally
-2. Connect to your local MCP server endpoint
-3. Execute tools and verify UI rendering
-
-**Building a Custom MCP Client:**
-
-If we need to build a custom MCP client with mcp-ui support, use the `@mcp-ui/client` SDK:
-
-For more details, see the [mcp-ui client documentation](https://mcpui.dev/guide/client/overview) and [React usage examples](https://mcpui.dev/guide/client/react-usage-examples).
-
-### Deployment Steps
-
-1. Deploy `mcp-ui-app` to public URL
-2. Update `MCP_UI_APP_BASE_URL` in `augmentWithUI.ts` (or use environment variable)
-3. Publish `@lg-mcp-ui/core` to npm
-4. Integrate `@lg-mcp-ui/core` into MongoDB MCP Server
-5. Connect MCP client (with mcp-ui support) to MongoDB MCP Server
-6. Execute tools in chat interface and verify UI renders correctly
-
-### Demo Scenarios
-
-- **List Databases**: Execute `list-databases` → Display database list in Card component
-- **Error Handling**: Invalid data → Graceful degradation (text-only response)
+**Note**: This table reflects the current state of mcp-ui support as of the time of this document. Client support is evolving rapidly, and implementations may vary.
 
 # Known Limitations
 
@@ -1000,15 +1087,15 @@ For more details, see the [mcp-ui client documentation](https://mcpui.dev/guide/
 
 **Status**: Dark mode is **not supported** in the current implementation.
 
-### The Problem
+### **The Problem**
 
 Embeddable UIs are rendered in cross-origin iframes, which creates fundamental constraints for theme detection:
 
 1. **No access to parent window**: Iframes cannot access parent window styles or theme state due to cross-origin restrictions
-2. **No control over host applications**: Host applications use `UIResourceRenderer` from `@mcp-ui/client` directly - we cannot modify their code
+2. **No control over host applications**: Host applications use `UIResourceRenderer` from `@mcp-ui/client` directly \- we cannot modify their code
 3. **System preference detection causes hydration mismatches**: When using `prefers-color-scheme` media query, the server renders with one theme (typically light mode as a default), but the client immediately detects the user's system preference and switches to a different theme. This mismatch between server-rendered HTML and client-rendered content causes React hydration errors and inconsistent initial renders across different user environments (some users see a flash of light mode before switching to dark, others see the opposite)
 
-### Why We Can't Solve This Now
+### **Why We Can't Solve This Now**
 
 Any solution that would enable dark mode would require one of the following:
 
@@ -1016,7 +1103,7 @@ Any solution that would enable dark mode would require one of the following:
 - **Standardized protocol**: The mcp-ui specification does not currently define a standard way for host applications to communicate theme preferences to embedded UIs
 - **Framework-level support**: There's no established pattern in the MCP-UI ecosystem for theme synchronization between host and embedded UIs
 
-### Current Implementation
+### **Current Implementation**
 
 Embeddable UIs default to **light mode** to ensure:
 
@@ -1106,16 +1193,3 @@ TODO
 # Open Questions
 
 - Subdomain
-- What’s the difference between a Micro UI component and a regular React component package?
-  - From my understanding, micro UIs will be static UIs (defined in this article: [https://www.copilotkit.ai/blog/the-three-kinds-of-generative-ui](https://www.copilotkit.ai/blog/the-three-kinds-of-generative-ui) )
-- TK: What does the actual MDB MPC server response look like?
-  - TK: Will mapping to toolname make sense or should it map to something else
-- ~~TK: How do we handle darkmode?~~ (Resolved: Dark mode is not supported - see [Known Limitations](#known-limitations))
-- TK: What are the specific CORS considerations that are needed? Is it ok from a security standpoint?
-- TK: What’s the best location in the MCP Server to proxy responses?
-- ~~Is this actually an "SDK"~~ (Resolved: Named "LeafyGreen MCP-UI" with core package `@lg-mcp-ui/core`)
-
-# TK TODO:
-
-- Add section about assumptions in how data gets passed on the client
-- Add section about current state \- most LLMs don’t support mcp-ui, and those that do are mostly incomplete
