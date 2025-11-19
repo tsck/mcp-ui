@@ -103,7 +103,157 @@ Next.js framework for hosting the embeddable UI application. Provides the web ap
 
 MongoDB's design system components for building consistent embeddable UIs.
 
+# Current State of mcp-ui Ecosystem
+
+**Status**: The mcp-ui specification is still in early stages, and client support is limited and incomplete.
+
+## Key Observations
+
+1. **Limited Client Adoption**: Most LLM clients and MCP-compatible applications do not yet support mcp-ui rendering or UI actions.
+
+2. **Incomplete Implementations**: Even among clients that claim mcp-ui support, implementations are often partial:
+
+   - Many support basic rendering but lack full UI action support
+   - Data passing mechanisms may vary between implementations
+   - Some clients may not fully implement the postMessage protocol as specified
+
+3. **Spec Evolution**: The mcp-ui specification itself is still evolving, which means:
+   - Our implementation follows the spec as we understand it, but the spec may change
+   - Client implementations may diverge from the spec as they adapt to their own needs
+   - Future spec updates may require changes to our implementation
+
+## MCP Clients with mcp-ui Support {#mcp-clients-with-mcp-ui-support}
+
+Several MCP-compatible clients support rendering mcp-ui resources. Feature support varies by client:
+
+| Client                                                      | Rendering | UI Actions | Notes                                                                                                     |
+| :---------------------------------------------------------- | :-------: | :--------: | :-------------------------------------------------------------------------------------------------------- |
+| [Nanobot](https://www.nanobot.ai/)                          |    ✅     |     ✅     | Full support for rendering and UI actions                                                                 |
+| [ChatGPT](https://chatgpt.com/)                             |    ✅     |     ⚠️     | Rendering supported; UI actions partially supported. See [mcp-ui guide](https://mcpui.dev/guide/apps-sdk) |
+| [Postman](https://www.postman.com/)                         |    ✅     |     ⚠️     | Rendering supported; UI actions partially supported                                                       |
+| [Goose](https://block.github.io/goose/)                     |    ✅     |     ⚠️     | Rendering supported; UI actions partially supported                                                       |
+| [LibreChat](https://www.librechat.ai/)                      |    ✅     |     ⚠️     | Rendering supported; UI actions partially supported                                                       |
+| [Smithery](https://smithery.ai/playground)                  |    ✅     |     ❌     | Rendering supported; UI actions not yet supported                                                         |
+| [MCPJam](https://www.mcpjam.com/)                           |    ✅     |     ❌     | Rendering supported; UI actions not yet supported                                                         |
+| [fast-agent](https://fast-agent.ai/mcp/mcp-ui/)             |    ✅     |     ❌     | Rendering supported; UI actions not yet supported                                                         |
+| [VSCode](https://github.com/microsoft/vscode/issues/260218) |     ?     |     ?      | Support planned (TBA)                                                                                     |
+
+**Legend:**
+
+- ✅: Fully Supported
+- ⚠️: Partially Supported
+- ❌: Not Supported (yet)
+- ?: Planned/Unknown
+
+**Note**: This table reflects the current state of mcp-ui support as of the time of this document. Client support is evolving rapidly, and implementations may vary.
+
+## Client Data Passing Assumptions
+
+**Important**: The mcp-ui specification is still evolving, and certain aspects of client implementation are not fully standardized. LeafyGreen MCP-UI makes the following assumptions about how MCP clients handle data:
+
+1. **Metadata Structure**: UIResource metadata is stored in the `_meta` field of the resource object. MCP-UI specific metadata uses the prefix `mcpui.dev/ui-`.
+
+2. **Data Extraction**: MCP clients extract render data from `_meta['mcpui.dev/ui-initial-render-data']` in the UIResource, potentially using `@mcp-ui/client` utility functions (`getResourceMetadata`, `getUIResourceMetadata`).
+
+3. **Data Forwarding**: Clients pass the extracted render data to the iframe via postMessage in the format:
+
+   ```ts
+   {
+     type: 'ui-lifecycle-iframe-render-data',
+     payload: { renderData: { /* data from _meta */ } }
+   }
+   ```
+
+4. **Timing**: Clients wait for the `ui-lifecycle-iframe-ready` message from the iframe before sending render data. The `?waitForRenderData=true` query parameter signals this requirement.
+
+**Rationale**: While the [mcp-ui embeddable UI specification](https://mcpui.dev/guide/embeddable-ui#message-types) defines the postMessage protocol, the exact mechanism for how clients extract and forward `_meta['mcpui.dev/ui-initial-render-data']` to iframes is an implementation detail. Our implementation follows the pattern established by the `@mcp-ui/client` SDK.
+
+**Impact**: If clients implement different data passing mechanisms, embeddable UIs may not receive render data correctly. This is a known risk given the early-stage nature of the mcp-ui ecosystem.
+
+## Implications for LeafyGreen MCP-UI
+
+- **Spec Compliance**: We are building to be spec-compliant based on the current mcp-ui specification and `@mcp-ui/client` SDK patterns, but cannot guarantee compatibility with all current or future client implementations.
+
+- **Testing Challenges**: Limited client support makes comprehensive testing difficult. We rely on:
+
+  - The `@mcp-ui/client` SDK as a reference implementation
+  - Local testing tools like `ui-inspector`
+  - Custom mock clients for development
+
+- **Future Adaptability**: As the ecosystem matures, we may need to adjust our data passing assumptions, update implementation details to match actual client behavior, or add compatibility layers for different client implementations.
+
 # Implementation Details
+
+## Validation Strategy
+
+LeafyGreen MCP-UI implements a **two-layer validation approach** to ensure data integrity:
+
+### Layer 1: Data Source Validation (`augmentWithUI`)
+
+Before creating a UI resource, `augmentWithUI()` validates `renderData` against the tool's schema:
+
+- **Location**: `augmentWithUI()` function in `@lg-mcp-ui/core`
+- **Purpose**: Prevents invalid UI resources from being created
+- **Behavior**: If validation fails, logs a warning and returns the original `CallToolResult` unchanged (UI augmentation is skipped but tool result data is preserved)
+- **Schemas**: Defined in `src/schemas.ts` and exported from the package
+
+### Layer 2: Component-Level Validation
+
+Components validate their props using schemas imported from `@lg-mcp-ui/core`:
+
+- **Location**: Individual embeddable UI components
+- **Purpose**: Ensures components only render with valid data
+- **Behavior**: If validation fails, components display user-friendly error messages
+- **Schemas**: Same schemas used in Layer 1, ensuring consistency
+
+### Schema Design Principles
+
+- **Centralized schemas**: All schemas defined in `@lg-mcp-ui/core` and exported for reuse
+- **Schema matches props**: Zod schemas validate the exact structure components expect
+- **No transformation layer**: MCP server data should match component props directly
+- **Type inference**: Use `z.infer<typeof Schema>` for TypeScript types
+
+### Error Handling
+
+Both validation layers handle errors gracefully:
+
+- Validation failures are logged but don't crash the application
+- Invalid data results in graceful degradation (text-only response or error display)
+- Original tool result data is always preserved, even if UI augmentation fails
+
+## Error Handling Strategy
+
+UI augmentation is **non-blocking** and **non-fatal** to ensure MCP server reliability:
+
+### Principles
+
+- **Graceful degradation**: If UI augmentation fails, the original `CallToolResult` is returned unchanged
+- **Non-blocking**: Errors in UI augmentation don't prevent tool execution from completing successfully
+- **Backward compatibility**: Tools continue to work even if UI augmentation is unavailable or fails
+- **Error logging**: All errors are logged for debugging but don't surface to end users
+
+### Error Scenarios
+
+1. **URL mapping doesn't exist**: Returns original `CallToolResult` unchanged
+2. **Schema validation fails**: Logs warning, returns original `CallToolResult` unchanged (prevents UI augmentation but preserves tool result data)
+3. **UIResource creation fails**: Logs error, returns original `CallToolResult` unchanged
+4. **Network/hosting issues**: Handled at client level; doesn't affect MCP server response
+
+### Integration Pattern
+
+All tool integrations follow this pattern:
+
+```ts
+try {
+  return augmentWithUI(toolResult, { toolName: this.name, renderData });
+} catch (error) {
+  // Log error but return original result
+  this.session.logger.warning({
+    message: `Failed to augment ${this.name} with UI: ${error}`,
+  });
+  return toolResult;
+}
+```
 
 ## Core Package Implementation (`@lg-mcp-ui/core`)
 
@@ -151,46 +301,15 @@ function augmentWithUI(
 1. Extracts the tool name and render data from `options.toolName` and `options.renderData`
 2. Looks up the tool name in the internal `TOOL_TO_ROUTE_MAPPINGS` registry
 3. If a mapping exists:
-   - **Validates renderData** against the corresponding schema from `TOOL_SCHEMAS`
-   - If validation fails, logs a warning and returns the original \`CallToolResult\` unchanged (prevents UI augmentation)
-   - If validation passes, continues to create UI resource
+   - Validates renderData against the corresponding schema (see [Validation Strategy](#validation-strategy))
    - Constructs external URL with route and `?waitForRenderData=true` query parameter
    - Creates a `UIResource` with `content.type: 'externalUrl'` pointing to the generated URL
-   - **Embeds the provided render data** directly in `uiMetadata['initial-render-data']`
+   - Embeds the provided render data in `_meta['mcpui.dev/ui-initial-render-data']` (see [Client Data Passing Assumptions](#client-data-passing-assumptions))
    - Appends the `UIResource` to the `CallToolResult.content` array
    - Returns the augmented `CallToolResult`
 4. If no mapping exists, returns the `CallToolResult` unchanged
 
-#### Error Handling
-
-- If URL mapping doesn't exist, returns the original `CallToolResult` unchanged
-- If schema validation fails, logs a warning and returns the original \`CallToolResult\` unchanged (prevents UI augmentation but preserves tool result data)
-- All errors are non-fatal to ensure the MCP server can still return data even if UI augmentation fails
-
-#### Validation
-
-LeafyGreen MCP-UI validates `renderData` against the schema defined for each tool before creating the UI resource. This ensures data integrity at the source:
-
-```ts
-// Validate renderData against the schema for this tool (if schema exists)
-const schema = TOOL_SCHEMAS[toolName];
-if (schema) {
-  try {
-    schema.parse(renderData);
-    console.log(`[augmentWithUI] Validation passed for tool: ${toolName}`);
-  } catch (error) {
-    const errorMessage =
-      error instanceof z.ZodError
-        ? `Schema validation failed for tool "${toolName}": ${error.issues
-            .map((e) => e.message)
-            .join(", ")}`
-        : `Schema validation failed for tool "${toolName}"`;
-    console.warn(`[augmentWithUI] ${errorMessage}`, error);
-    // Return the tool result unmodified - validation failure prevents UI augmentation
-    return toolResult;
-  }
-}
-```
+**Note**: Validation and error handling follow the patterns defined in [Validation Strategy](#validation-strategy) and [Error Handling Strategy](#error-handling-strategy).
 
 **UIResource Creation**  
 LeafyGreen MCP-UI internally uses `@mcp-ui/server`'s `createUIResource` function.
@@ -201,7 +320,7 @@ LeafyGreen MCP-UI internally uses `@mcp-ui/server`'s `createUIResource` function
 - `content.type` is always `'externalUrl'` for embeddable UIs
 - `content.iframeUrl` includes the `?waitForRenderData=true` query parameter to signal the embeddable UI to wait for data via `postMessage`
 - `encoding` defaults to `'text'`
-- `uiMetadata['initial-render-data']` contains the render data provided by the MCP server
+- `_meta['mcpui.dev/ui-initial-render-data']` contains the render data provided by the MCP server (see [Client Data Passing Assumptions](#client-data-passing-assumptions))
 
 **Example: Creating UIResource for list-databases**
 
@@ -232,7 +351,7 @@ const uiResource = createUIResource({
 });
 ```
 
-### **UI Metadata and Communication Protocol**
+### **UI Metadata and Communication Protocol** {#ui-metadata-and-communication-protocol}
 
 Embeddable UIs communicate bidirectionally with the parent MCP client via the `postMessage` protocol as defined in the [mcp-ui embeddable UI specification](https://mcpui.dev/guide/embeddable-ui#message-types).
 
@@ -241,14 +360,13 @@ Embeddable UIs communicate bidirectionally with the parent MCP client via the `p
 When an embeddable UI needs to display data:
 
 1. MCP server extracts and transforms tool result into structured render data
-2. MCP server calls `augmentWithUI()` with the render data
-3. **LeafyGreen MCP-UI validates renderData against schema** (if schema exists for the tool)
-4. LeafyGreen MCP-UI creates `UIResource` with validated render data embedded in `uiMetadata['initial-render-data']`
-5. Client renders the iframe using `UIResourceRenderer` from `@mcp-ui/client`
-6. Embeddable UI component listens for `ui-lifecycle-iframe-render-data` message
-7. Embeddable UI receives structured render data via `event.data.payload.renderData`
-8. **Component validates props against schema** before rendering
-9. Embeddable UI renders using the validated data
+2. MCP server calls `augmentWithUI()` with the render data (validates at data source - see [Validation Strategy](#validation-strategy))
+3. LeafyGreen MCP-UI creates `UIResource` with validated render data embedded in `_meta['mcpui.dev/ui-initial-render-data']`
+4. Client renders the iframe using `UIResourceRenderer` from `@mcp-ui/client`
+5. Embeddable UI component listens for `ui-lifecycle-iframe-render-data` message
+6. Embeddable UI receives structured render data via `event.data.payload.renderData`
+7. Component validates props against schema before rendering (see [Validation Strategy](#validation-strategy))
+8. Embeddable UI renders using the validated data
 
 **Message Structure (Parent → Iframe):**
 
@@ -300,63 +418,9 @@ When an embeddable UI needs to trigger an action (e.g., form submission):
 3. Parent MCP client receives message and forwards to MCP server
 4. MCP server executes tool (with proper authentication/authorization)
 5. MCP server extracts/transforms result data into render data
-6. MCP server augments result with `augmentWithUI()` passing render data directly
-7. **LeafyGreen MCP-UI validates renderData against schema** before creating UI resource
-8. Client extracts render data and sends it back to iframe via read flow above
-9. **Component validates props against schema** before rendering
-
-#### Client Data Passing Assumptions
-
-**Important**: The mcp-ui specification is still evolving, and certain aspects of client implementation are not fully standardized. LeafyGreen MCP-UI makes the following assumptions about how MCP clients handle data:
-
-1. **Metadata Structure**:
-   - UIResource metadata is stored in the `_meta` field of the resource object
-   - MCP-UI specific metadata uses the prefix `mcpui.dev/ui-`
-   - Example structure:
-
-```ts
-   {
-     type: 'resource',
-     resource: {
-       uri: 'ui://...',
-       mimeType: '...',
-       text: '...',
-       _meta: {
-         'mcpui.dev/ui-initial-render-data': { /* render data */ },
-         'mcpui.dev/ui-preferred-frame-size': ['800px', '600px'],
-         title: 'My Component' // standard metadata
-       }
-     }
-   }
-```
-
-2. **Data Extraction**:
-
-   - We assume that MCP clients will extract render data from `_meta['mcpui.dev/ui-initial-render-data']` in the UIResource
-   - Clients may use the `@mcp-ui/client` utility functions:
-     - `getResourceMetadata(resource)` \- extracts all `_meta` content
-     - `getUIResourceMetadata(resource)` \- extracts only `mcpui.dev/ui-*` fields (with prefixes removed)
-
-3. **Data Forwarding**:
-   - We assume clients will pass the extracted render data to the iframe via postMessage
-   - Expected message format:
-
-```ts
-   {
-     type: 'ui-lifecycle-iframe-render-data',
-     payload: {
-       renderData: { /* the data from _meta['mcpui.dev/ui-initial-render-data'] */ }
-     }
-   }
-```
-
-4. **Timing**:
-   - We assume clients will wait for the `ui-lifecycle-iframe-ready` message from the iframe before sending render data
-   - The `?waitForRenderData=true` query parameter signals this requirement
-
-**Rationale**: While the [mcp-ui embeddable UI specification](https://mcpui.dev/guide/embeddable-ui#message-types) defines the postMessage protocol, the exact mechanism for how clients extract and forward `_meta['mcpui.dev/ui-initial-render-data']` to iframes is an implementation detail. Our implementation follows the pattern established by the `@mcp-ui/client` SDK and the metadata structure documented in the mcp-ui client overview.
-
-**Impact**: If clients implement different data passing mechanisms, embeddable UIs may not receive render data correctly. This is a known risk given the early-stage nature of the mcp-ui ecosystem. For more context on the current state of mcp-ui client support, see [Current State of mcp-ui Ecosystem](#current-state-of-mcp-ui-ecosystem).
+6. MCP server augments result with `augmentWithUI()` (validates at data source - see [Validation Strategy](#validation-strategy))
+7. Client extracts render data and sends it back to iframe via read flow above
+8. Component validates props before rendering (see [Validation Strategy](#validation-strategy))
 
 **Message Structure (Iframe → Parent):**
 
@@ -450,10 +514,7 @@ The hook implements multiple validation layers:
 - **Error exposure**: Validation failures are surfaced to components via error state
 - **No origin validation**: Intentionally permits messages from any origin to support universal MCP client embeddability
 
-**Note:** Schema validation is handled at two layers:
-
-1. **Data source** (`augmentWithUI` in LeafyGreen MCP-UI) \- validates `renderData` before creating UI resources
-2. **Component level** \- components validate their props using schemas imported from the package
+**Note:** Schema validation follows the [Validation Strategy](#validation-strategy) (two-layer approach).
 
 #### API
 
@@ -520,33 +581,21 @@ export default function ListDatabasesPage() {
 
 ### **Component-Level Validation**
 
-#### Components validate their props using schemas imported from LeafyGreen MCP-UI. This provides a second layer of validation and ensures components only render with valid data.
-
-#### **Example: Component with Validation**
+Components validate their props using schemas imported from `@lg-mcp-ui/core` (see [Validation Strategy](#validation-strategy) for details). Example:
 
 ```ts
 // src/components/ListDatabases/ListDatabases.tsx
 import { DatabaseInfoSchema } from "@lg-mcp-ui/core";
 import { z } from "zod";
 
-export interface ListDatabasesProps {
-  databases: DatabaseInfo[];
-}
-
 export const ListDatabases = ({ databases }: ListDatabasesProps) => {
-  // Validate props against schema
-  const databasesArraySchema = z.array(DatabaseInfoSchema);
-  const validationResult = databasesArraySchema.safeParse(databases);
+  const validationResult = z.array(DatabaseInfoSchema).safeParse(databases);
 
   if (!validationResult.success) {
-    console.error("[ListDatabases] Validation error:", validationResult.error);
     return (
       <div>
-        <h1>Databases</h1>
-        <div style={{ color: "red" }}>
-          Validation Error:{" "}
-          {validationResult.error.issues.map((e) => e.message).join(", ")}
-        </div>
+        Validation Error:{" "}
+        {validationResult.error.issues.map((e) => e.message).join(", ")}
       </div>
     );
   }
@@ -554,27 +603,6 @@ export const ListDatabases = ({ databases }: ListDatabasesProps) => {
   return <div>{/* Render validated data */}</div>;
 };
 ```
-
-#### Best Practices
-
-**Schema Design:**
-
-- **Centralized schemas**: All schemas are defined in LeafyGreen MCP-UI (`@lg-mcp-ui/core`) and exported for use in both package validation and component validation
-- **Schema matches props**: Zod schemas validate the exact structure the component expects
-- **No transformation layer**: MCP server data should match component props directly, eliminating the need for data transformation in the page component
-- **Type from schema**: Use `z.infer<typeof Schema>` for TypeScript type inference
-
-**Validation Strategy:**
-
-- **Two-layer validation**:
-  1. LeafyGreen MCP-UI validates at data source (`augmentWithUI`) before creating UI resources
-  2. Components validate props before rendering
-- **Shared schemas**: Schemas are exported from the package and reused across validation layers
-- **Error handling**: Both layers handle validation errors gracefully, logging errors and displaying user-friendly error messages
-
-#### TypeScript Support
-
-The hook is fully typed and accepts a generic type parameter. Types can be inferred from schemas using `z.infer<>` or defined manually. Components import schemas from LeafyGreen MCP-UI for both validation and type inference.
 
 ### **Configuration**
 
@@ -627,7 +655,7 @@ Add `@lg-mcp-ui/core` as a dependency to the MongoDB MCP Server:
 }
 ```
 
-### **Integration Pattern**
+### **Integration Pattern** {#integration-pattern}
 
 The integration follows a consistent pattern across all tools:
 
@@ -685,19 +713,11 @@ The tool must transform raw MongoDB data (which may include BSON types like `Lon
 
 #### 2\. **Error Handling**
 
-UI augmentation is **non-blocking** and **non-fatal**:
-
-- If `augmentWithUI()` throws an error, the tool returns the original `CallToolResult` unchanged
-- Errors are logged but do not prevent the tool from completing successfully
-- This ensures backward compatibility and graceful degradation
+Follows the [Error Handling Strategy](#error-handling-strategy): UI augmentation is non-blocking and non-fatal. If `augmentWithUI()` throws an error, the tool returns the original `CallToolResult` unchanged.
 
 #### 3\. **Schema Validation**
 
-`augmentWithUI()` validates `renderData` against the tool's schema before creating the UI resource:
-
-- If validation fails, the original `CallToolResult` is returned unchanged
-- Validation errors are logged as warnings
-- This ensures only valid data reaches the embeddable UI
+Follows the [Validation Strategy](#validation-strategy): `augmentWithUI()` validates `renderData` before creating UI resources. If validation fails, the original `CallToolResult` is returned unchanged.
 
 #### 4\. **Tool Result Structure**
 
@@ -725,9 +745,9 @@ The augmented result preserves the original tool result content and appends the 
           type: "externalUrl",
           iframeUrl: "https://mcp-ui-app.example.com/ListDatabases?waitForRenderData=true"
         },
-        uiMetadata: {
-          "initial-render-data": { databases: [...], totalCount: 3 }
-        }
+       _meta: {
+         'mcpui.dev/ui-initial-render-data': { databases: [...], totalCount: 3 },
+       }
       }
     }
   ]
@@ -736,38 +756,14 @@ The augmented result preserves the original tool result content and appends the 
 
 ## Example Implementation: List Databases Embeddable UI
 
-To demonstrate the complete flow and deliverable, here's a concrete example of an embeddable UI that renders a Card component displaying the results of the `list-databases` tool from the MongoDB MCP Server:
-
-### **Tool Call and Augmentation**
-
-```ts
-// MongoDB MCP Server handles tool call
-const toolResult: CallToolResult = {
-  content: [
-    {
-      type: "text",
-      text: JSON.stringify({
-        databases: ["admin", "config", "local", "myDatabase"],
-      }),
-    },
-  ],
-};
-
-// Augment with UI
-const augmented = augmentWithUI(toolResult, {
-  toolName: "list-databases",
-});
-```
+This example demonstrates the complete end-to-end flow. See [Integration Pattern](#integration-pattern) and [Communication Protocol](#ui-metadata-and-communication-protocol) for detailed explanations.
 
 ### **Embeddable UI Component**
 
 ```ts
-// mcp-ui/list-databases/src/ListDatabases
-import React from "react";
+// mcp-ui/list-databases/src/ListDatabases.tsx
 import { Card } from "@leafygreen-ui/card";
 import { H2, Body } from "@leafygreen-ui/typography";
-
-import { ListDatabasesProps } from "./ListDatabases.types.ts";
 
 export function ListDatabases({ databases }: ListDatabasesProps) {
   return (
@@ -777,9 +773,9 @@ export function ListDatabases({ databases }: ListDatabasesProps) {
         <Body>No databases found</Body>
       ) : (
         <ul>
-          {databases.map((dbName) => (
-            <li key={dbName}>
-              <Body>{dbName}</Body>
+          {databases.map((db) => (
+            <li key={db.name}>
+              <Body>{db.name}</Body>
             </li>
           ))}
         </ul>
@@ -787,12 +783,6 @@ export function ListDatabases({ databases }: ListDatabasesProps) {
     </Card>
   );
 }
-```
-
-```ts
-// mcp-ui/list-databases/src/index.ts
-export { ListDatabases } from "./ListDatabases";
-export type { ListDatabasesProps } from "./ListDatabases.types";
 ```
 
 ### **`mcp-ui-app` Page**
@@ -808,47 +798,30 @@ type ListDatabasesRenderData = z.infer<typeof ListDatabasesDataSchema>;
 
 export default function ListDatabasesPage() {
   const { data, isLoading, error } = useRenderData<ListDatabasesRenderData>();
-
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
-  if (!data || !data.databases || data.databases.length === 0) {
-    return <div>No databases available</div>;
-  }
-
-  // Component will validate props before rendering
+  if (!data?.databases?.length) return <div>No databases available</div>;
   return <ListDatabases databases={data.databases} />;
 }
 ```
 
-### **Client Rendering**
-
-_Note: This is on the MCP client that is making the request to the MCP server. This is just an example implementation of how that might look. It is not something we implement ourselves._
+### **MCP Server Integration**
 
 ```ts
-// In MCP client application
-import { UIResourceRenderer } from "@mcp-ui/client";
+// In MongoDB MCP Server tool execute() method
+const renderData = {
+  databases: rawData.map((db) => ({
+    name: db.name,
+    size: db.sizeOnDisk.toNumber(),
+  })),
+  totalCount: rawData.length,
+};
 
-function renderMCPSResponse(response: MCPSResponse) {
-  return response.content.map((item, index) => {
-    if (item.type === "resource" && item.resource.uri?.startsWith("ui://")) {
-      return (
-        <UIResourceRenderer
-          key={index}
-          resource={item.resource}
-          onUIAction={(action) => {
-            console.log("UI Action:", action);
-            // Handle action (e.g., trigger another tool call)
-          }}
-        />
-      );
-    }
-    // Render text content normally
-    return <div key={index}>{item.text}</div>;
-  });
-}
+return augmentWithUI(toolResult, {
+  toolName: "list-databases",
+  renderData,
+});
 ```
-
-This example demonstrates the complete end-to-end flow from tool call to rendered Card component in the client application.
 
 # Security Architecture {#security-architecture}
 
@@ -992,7 +965,7 @@ Production demo requires:
 
 Some investigation will need to be done to see if a known client has the mcp-ui spec fully implemented and to ultimately get it working. If there is none, we may need to build out own for demonstration purposes.
 
-For more information on the current state of mcp-ui client support and ecosystem limitations, see [Current State of mcp-ui Ecosystem](#mcp-clients-with-mcp-ui-support).
+For more information on the current state of mcp-ui client support and ecosystem limitations, see [Current State of mcp-ui Ecosystem](#current-state-of-mcp-ui-ecosystem).
 
 **Testing Tool:**
 
@@ -1022,96 +995,17 @@ For more details, see the [mcp-ui client documentation](https://mcpui.dev/guide/
 - **List Databases**: Execute `list-databases` → Display database list in Card component
 - **Error Handling**: Invalid data → Graceful degradation (text-only response)
 
-# Current State of mcp-ui Ecosystem
-
-**Status**: The mcp-ui specification is still in early stages, and client support is limited and incomplete.
-
-## Key Observations
-
-1. **Limited Client Adoption**: Most LLM clients and MCP-compatible applications do not yet support mcp-ui rendering or UI actions.
-
-2. **Incomplete Implementations**: Even among clients that claim mcp-ui support, implementations are often partial:
-
-   - Many support basic rendering but lack full UI action support
-   - Data passing mechanisms may vary between implementations
-   - Some clients may not fully implement the postMessage protocol as specified
-
-3. **Spec Evolution**: The mcp-ui specification itself is still evolving, which means:
-   - Our implementation follows the spec as we understand it, but the spec may change
-   - Client implementations may diverge from the spec as they adapt to their own needs
-   - Future spec updates may require changes to our implementation
-
-## Implications for LeafyGreen MCP-UI
-
-- **Spec Compliance**: We are building to be spec-compliant based on the current mcp-ui specification and `@mcp-ui/client` SDK patterns, but cannot guarantee compatibility with all current or future client implementations.
-
-- **Testing Challenges**: Limited client support makes comprehensive testing difficult. We rely on:
-
-  - The `@mcp-ui/client` SDK as a reference implementation
-  - Local testing tools like `ui-inspector`
-  - Custom mock clients for development
-
-- **Future Adaptability**: As the ecosystem matures and more clients implement mcp-ui support, we may need to:
-  - Adjust our data passing assumptions (see [Client Data Passing Assumptions](#client-data-passing-assumptions))
-  - Update implementation details to match actual client behavior
-  - Add compatibility layers for different client implementations
-
-## MCP Clients with mcp-ui Support {#mcp-clients-with-mcp-ui-support}
-
-Several MCP-compatible clients support rendering mcp-ui resources. Feature support varies by client:
-
-| Client                                                      | Rendering | UI Actions | Notes                                                                                                     |
-| :---------------------------------------------------------- | :-------: | :--------: | :-------------------------------------------------------------------------------------------------------- |
-| [Nanobot](https://www.nanobot.ai/)                          |    ✅     |     ✅     | Full support for rendering and UI actions                                                                 |
-| [ChatGPT](https://chatgpt.com/)                             |    ✅     |     ⚠️     | Rendering supported; UI actions partially supported. See [mcp-ui guide](https://mcpui.dev/guide/apps-sdk) |
-| [Postman](https://www.postman.com/)                         |    ✅     |     ⚠️     | Rendering supported; UI actions partially supported                                                       |
-| [Goose](https://block.github.io/goose/)                     |    ✅     |     ⚠️     | Rendering supported; UI actions partially supported                                                       |
-| [LibreChat](https://www.librechat.ai/)                      |    ✅     |     ⚠️     | Rendering supported; UI actions partially supported                                                       |
-| [Smithery](https://smithery.ai/playground)                  |    ✅     |     ❌     | Rendering supported; UI actions not yet supported                                                         |
-| [MCPJam](https://www.mcpjam.com/)                           |    ✅     |     ❌     | Rendering supported; UI actions not yet supported                                                         |
-| [fast-agent](https://fast-agent.ai/mcp/mcp-ui/)             |    ✅     |     ❌     | Rendering supported; UI actions not yet supported                                                         |
-| [VSCode](https://github.com/microsoft/vscode/issues/260218) |     ?     |     ?      | Support planned (TBA)                                                                                     |
-
-**Legend:**
-
-- ✅: Fully Supported
-- ⚠️: Partially Supported
-- ❌: Not Supported (yet)
-- ?: Planned/Unknown
-
-**Note**: This table reflects the current state of mcp-ui support as of the time of this document. Client support is evolving rapidly, and implementations may vary.
-
 # Known Limitations
 
 ## Dark Mode Support
 
 **Status**: Dark mode is **not supported** in the current implementation.
 
-### **The Problem**
+**Problem**: Embeddable UIs are rendered in cross-origin iframes, preventing access to parent window theme state. System preference detection causes React hydration mismatches between server-rendered and client-rendered content.
 
-Embeddable UIs are rendered in cross-origin iframes, which creates fundamental constraints for theme detection:
+**Why unsolvable now**: Any solution would require host app modifications (not viable), a standardized mcp-ui theme protocol (doesn't exist), or framework-level support (no established pattern).
 
-1. **No access to parent window**: Iframes cannot access parent window styles or theme state due to cross-origin restrictions
-2. **No control over host applications**: Host applications use `UIResourceRenderer` from `@mcp-ui/client` directly \- we cannot modify their code
-3. **System preference detection causes hydration mismatches**: When using `prefers-color-scheme` media query, the server renders with one theme (typically light mode as a default), but the client immediately detects the user's system preference and switches to a different theme. This mismatch between server-rendered HTML and client-rendered content causes React hydration errors and inconsistent initial renders across different user environments (some users see a flash of light mode before switching to dark, others see the opposite)
-
-### **Why We Can't Solve This Now**
-
-Any solution that would enable dark mode would require one of the following:
-
-- **Host app modifications**: Requiring host applications to implement theme communication (postMessage, URL parameters, etc.) is not viable since we have no control over host application code
-- **Standardized protocol**: The mcp-ui specification does not currently define a standard way for host applications to communicate theme preferences to embedded UIs
-- **Framework-level support**: There's no established pattern in the MCP-UI ecosystem for theme synchronization between host and embedded UIs
-
-### **Current Implementation**
-
-Embeddable UIs default to **light mode** to ensure:
-
-- Consistent, predictable rendering across all host applications
-- No hydration mismatches or rendering inconsistencies
-- Zero configuration required from host applications
-
-Until then, embeddable UIs will render in light mode only.
+**Current approach**: Embeddable UIs default to **light mode** to ensure consistent rendering and avoid hydration issues across all host applications.
 
 # Future Considerations
 

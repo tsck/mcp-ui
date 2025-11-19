@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MCP UI App (`@mcp-poc/mcp-ui-app`)
+
+**⚠️ This is a proof-of-concept application.** This Next.js app demonstrates how embeddable UIs are hosted and rendered. The production implementation will be deployed separately.
+
+## Overview
+
+This Next.js application serves as the hosting infrastructure for embeddable UI components. Each route corresponds to an embeddable UI component that will be rendered within an iframe by MCP clients.
+
+## Purpose
+
+This POC demonstrates:
+- How embeddable UIs receive render data via the `postMessage` protocol
+- How UI components validate data using Zod schemas
+- How LeafyGreen components are used to build consistent UIs
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js (v18+)
+- pnpm (v8+)
+
+### Running Locally
+
+From the root of the monorepo:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# Run all services (recommended)
 pnpm dev
-# or
-bun dev
+
+# Or run this package only
+pnpm mcp-ui-app:dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app will be available at `http://localhost:3003`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Available Routes
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `/HelloWorld` - Simple greeting message component
+- `/ClusterMetrics` - Time-series chart visualization
+- `/ListDatabases` - Database list displayed in a Card component
 
-## Learn More
+## How It Works
 
-To learn more about Next.js, take a look at the following resources:
+Each embeddable UI has its own route (e.g., `/HelloWorld`, `/ClusterMetrics`). Components use the `useRenderData()` hook to:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Send `ui-lifecycle-iframe-ready` message on mount
+2. Listen for `ui-lifecycle-iframe-render-data` messages from the parent client
+3. Receive and validate render data using Zod schemas
+4. Render using LeafyGreen components
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The app uses permissive CORS headers (`Access-Control-Allow-Origin: *`, `frame-ancestors *`) to support iframe embedding from any MCP client.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**See the [root README](../../README.md) for setup and development details.**

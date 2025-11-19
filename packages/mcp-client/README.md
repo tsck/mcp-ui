@@ -1,14 +1,22 @@
-# MCP React Client
+# MCP Client (`@mcp-poc/mcp-client`)
 
-A React-based client for interacting with MCP (Model Context Protocol) servers, built with Vite and TypeScript.
+**⚠️ This is a proof-of-concept demo client.** This React application demonstrates how MCP clients can render MCP-UI resources. It is **not production code** and exists only for POC demonstration purposes.
 
-## Features
+## Overview
 
-- **Tool Discovery**: Automatically fetches and displays available tools from the MCP server
-- **Tool Execution**: Execute tools with a simple click
-- **Response Display**: View raw JSON responses from tool calls
-- **UI Rendering**: Renders MCP-UI resources using the `@mcp-ui/client` package
-- **Modern UI**: Clean, dark-themed interface with responsive layout
+This React-based client demonstrates:
+- How to connect to an MCP server
+- How to discover and execute tools
+- How to render MCP-UI resources using `@mcp-ui/client`
+- How to extract and forward render data to embeddable UIs
+
+## Purpose
+
+This POC client shows the complete end-to-end flow:
+1. Tool execution on the MCP server
+2. UI resource augmentation via `augmentWithUI()`
+3. Client extraction of render data from `uiMetadata`
+4. Rendering of embeddable UIs in iframes
 
 ## Getting Started
 
@@ -16,79 +24,33 @@ A React-based client for interacting with MCP (Model Context Protocol) servers, 
 
 - Node.js (v18+)
 - pnpm (v8+)
-- Running MCP server on `http://localhost:3000/mcp`
+- Running MCP server (see [`mcp-server`](../mcp-server/README.md))
 
-### Installation
+### Running Locally
 
-Dependencies are already installed if you've run the setup from the root project.
-
-### Development
-
-From the client directory:
+From the root of the monorepo:
 
 ```bash
-cd src/client
+# Run all services (recommended)
 pnpm dev
+
+# Or run this package only
+pnpm mcp-client:dev
 ```
 
-Or from the root directory:
+The client will be available at `http://localhost:3001` (or next available port).
 
-```bash
-# Run only the client
-pnpm client:dev
+### Configuration
 
-# Run both server and client
-pnpm dev
-```
+The client connects to the MCP server at `http://localhost:3000/mcp` by default. This is configured in `src/services/mcpClient.ts`.
 
-The client will be available at `http://localhost:3001`.
+## How It Works
 
-## Architecture
+The client connects to the MCP server, discovers available tools, and executes them. When a tool response includes a UI resource:
 
-### Components
+1. Extracts render data from `uiMetadata['initial-render-data']` in the UI resource
+2. Renders an iframe using `UIResourceRenderer` from `@mcp-ui/client`
+3. Passes render data to the iframe via the `iframeRenderData` prop
+4. The iframe receives data via `postMessage` and renders the embeddable UI
 
-- **ToolNav**: Displays available tools and handles tool selection/execution
-- **ResponseDisplay**: Shows the raw JSON response from tool calls
-- **UIRenderer**: Renders MCP-UI resources using `UIResourceRenderer`
-
-### Services
-
-- **mcpClient**: Handles communication with the MCP server
-  - Manages session initialization
-  - Lists available tools
-  - Executes tool calls
-  - Handles cleanup
-
-## Configuration
-
-The client connects to the MCP server at `http://localhost:3000/mcp` by default. To change this, modify the `MCPClient` constructor in `src/services/mcpClient.ts`:
-
-```typescript
-export const mcpClient = new MCPClient("http://your-server:port/mcp");
-```
-
-## Project Structure
-
-```
-src/client/
-├── src/
-│   ├── components/
-│   │   ├── ToolNav.tsx    # Tool selection UI
-│   │   ├── ResponseDisplay.tsx # Response display
-│   │   └── UIRenderer.tsx      # MCP-UI renderer
-│   ├── services/
-│   │   └── mcpClient.ts        # MCP client service
-│   ├── App.tsx                 # Main application
-│   ├── App.css                 # Styles
-│   └── main.tsx                # Entry point
-├── vite.config.ts              # Vite configuration
-└── package.json                # Dependencies
-```
-
-## Technologies
-
-- **React 19**: UI framework
-- **TypeScript**: Type safety
-- **Vite**: Build tool and dev server
-- **@mcp-ui/client**: MCP-UI rendering
-- **@modelcontextprotocol/sdk**: MCP protocol implementation
+**See the [root README](../../README.md) for setup and development details.**
