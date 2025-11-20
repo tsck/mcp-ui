@@ -4,8 +4,8 @@ import { z } from "zod";
 import { TOOL_SCHEMAS } from "./schemas";
 
 // Base URL for external micro UI app
-// const MCP_UI_APP_BASE_URL = "https://mcp-ui-mcp-ui-app.vercel.app";
-const MCP_UI_APP_BASE_URL = "http://localhost:3003";
+const MCP_UI_APP_BASE_URL = "https://mcp-ui-mcp-ui-app.vercel.app";
+// const MCP_UI_APP_BASE_URL = "http://localhost:3003";
 
 // Tool name to route mappings for external URLs
 const TOOL_TO_ROUTE_MAPPINGS: Record<string, string> = {
