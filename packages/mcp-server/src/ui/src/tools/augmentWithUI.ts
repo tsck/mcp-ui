@@ -70,9 +70,11 @@ export function augmentWithUI(
   }
 
   // Read the built HTML file from the UI dist directory
+  // Path: from src/tools/ go up to ui/, then to dist/embeddable-uis/
   const uiDistPath = join(
     __dirname,
-    "ui",
+    "..",
+    "..",
     "dist",
     "embeddable-uis",
     htmlFileName

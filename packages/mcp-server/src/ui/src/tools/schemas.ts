@@ -32,4 +32,3 @@ export const TOOL_SCHEMAS: Record<string, z.ZodType<unknown>> = {
   "cluster-metrics": ClusterMetricsDataSchema,
   // hello-world doesn't require render data, so no schema needed
 };
-

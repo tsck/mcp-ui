@@ -8,13 +8,10 @@ import { nodePolyfills } from "vite-plugin-node-polyfills";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const SOURCE_DIR = path.join(__dirname, "src");
+const SOURCE_DIR = path.join(__dirname, "..");
 const COMPONENTS_DIR = path.join(SOURCE_DIR, "components");
-const OUTPUT_DIR = path.join(__dirname, "dist", "embeddable-uis");
-const ENTRY_TEMPLATE_PATH = path.join(
-  SOURCE_DIR,
-  "component-entry-template.tsx"
-);
+const OUTPUT_DIR = path.join(__dirname, "..", "..", "dist", "embeddable-uis");
+const ENTRY_TEMPLATE_PATH = path.join(__dirname, "component-entry-template.tsx");
 
 /**
  * HTML wrapper template for embeddable UI components
@@ -84,7 +81,7 @@ async function buildComponent(component) {
     // Build with Vite
     const result = await build({
       configFile: false,
-      root: __dirname,
+      root: path.join(__dirname, ".."),
       mode: "production",
       plugins: [
         react({
@@ -227,24 +224,6 @@ async function discoverComponents() {
 }
 
 /**
- * Update manifest.json with component mappings
- */
-async function updateManifest(components) {
-  const manifestPath = path.join(OUTPUT_DIR, "manifest.json");
-  const manifest = {};
-
-  for (const component of components) {
-    manifest[component.name] = {
-      file: `${component.name}.html`,
-      timestamp: new Date().toISOString(),
-    };
-  }
-
-  await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2), "utf-8");
-  console.log("✓ Updated manifest.json");
-}
-
-/**
  * Main build function
  */
 async function buildAll() {
@@ -276,10 +255,6 @@ async function buildAll() {
   console.log(
     `\nBuild complete: ${successCount} succeeded, ${failCount} failed`
   );
-
-  if (successCount > 0) {
-    await updateManifest(components.filter((_, i) => results[i]));
-  }
 }
 
 // CLI - Just run build
@@ -287,3 +262,4 @@ buildAll().catch((error) => {
   console.error("Build error:", error);
   process.exit(1);
 });
+

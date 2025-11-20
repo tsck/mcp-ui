@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node build.mjs",
-    "build": "node build.mjs",
+    "dev": "node src/build/build.mjs",
+    "build": "node src/build/build.mjs",
     "lint": "eslint ."
   },
   "dependencies": {

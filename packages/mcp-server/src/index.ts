@@ -8,7 +8,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { randomUUID } from "crypto";
 import { mockData } from "./mockData";
-import { augmentWithUI } from "./augmentWithUI";
+import { augmentWithUI } from "./ui/src/tools/index.js";
 
 const app = express();
 const port = 3000;
