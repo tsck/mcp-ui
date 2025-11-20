@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node build.mjs --watch",
+    "dev": "node build.mjs",
     "build": "node build.mjs",
     "lint": "eslint ."
   },

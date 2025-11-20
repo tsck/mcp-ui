@@ -52,8 +52,8 @@ async function generateEntryPoint(componentName, componentPath) {
   const relativePath = path
     .relative(tempDir, componentPath)
     .replace(/\\/g, "/");
-  // Remove .tsx extension for import
-  const importPath = relativePath.replace(/\.tsx$/, "");
+  // Remove file extension for import (.tsx or .ts)
+  const importPath = relativePath.replace(/\.(tsx|ts)$/, "");
 
   // Replace import path first
   let entryContent = templateContent.replace(
@@ -178,7 +178,7 @@ async function buildComponent(component) {
 
 /**
  * Discover components in the components directory
- * Looks for ComponentName/ComponentName.tsx pattern
+ * Looks for ComponentName/index.ts or ComponentName/ComponentName.tsx pattern
  */
 async function discoverComponents() {
   const components = [];
@@ -189,20 +189,33 @@ async function discoverComponents() {
     for (const entry of entries) {
       if (entry.isDirectory()) {
         const componentName = entry.name;
-        const componentFile = path.join(
-          COMPONENTS_DIR,
-          componentName,
-          `${componentName}.tsx`
-        );
 
-        try {
-          await fs.access(componentFile);
+        // Try index.ts first, then ComponentName.tsx
+        const possiblePaths = [
+          path.join(COMPONENTS_DIR, componentName, "index.ts"),
+          path.join(COMPONENTS_DIR, componentName, `${componentName}.tsx`),
+        ];
+
+        let componentFile = null;
+        for (const filePath of possiblePaths) {
+          try {
+            await fs.access(filePath);
+            componentFile = filePath;
+            break;
+          } catch {
+            // Try next path
+          }
+        }
+
+        if (componentFile) {
           components.push({
             name: componentName,
             path: componentFile,
           });
-        } catch (error) {
-          console.warn(`Component file not found: ${componentFile}`);
+        } else {
+          console.warn(
+            `Component file not found for ${componentName} (tried: index.ts, ${componentName}.tsx)`
+          );
         }
       }
     }
@@ -269,89 +282,8 @@ async function buildAll() {
   }
 }
 
-/**
- * Watch mode
- */
-async function watch() {
-  console.log("Starting watch mode...\n");
-
-  const components = await discoverComponents();
-  if (components.length === 0) {
-    console.warn("No components found");
-    return;
-  }
-
-  // Build all components first
-  await buildAll();
-
-  console.log("\n👁  Watching for changes...");
-  console.log("Press Ctrl+C to stop\n");
-
-  // Track watched files to avoid duplicates
-  const watchedFiles = new Set();
-
-  async function watchFile(filePath, description) {
-    if (watchedFiles.has(filePath)) return;
-    watchedFiles.add(filePath);
-
-    try {
-      await fs.access(filePath);
-      fs.watch(filePath, async () => {
-        console.log(
-          `\n📝 File changed: ${
-            description || path.relative(__dirname, filePath)
-          }`
-        );
-        // Rebuild all components when any file changes
-        await buildAll();
-        console.log("\n👁  Watching for changes...");
-      });
-    } catch (error) {
-      // File might not exist yet
-    }
-  }
-
-  // Watch all component files
-  for (const component of components) {
-    await watchFile(component.path, `${component.name}/${component.name}.tsx`);
-
-    // Watch styles file if it exists
-    const stylesPath = path.join(
-      path.dirname(component.path),
-      `${component.name}.styles.ts`
-    );
-    await watchFile(
-      stylesPath,
-      `${component.name}/${component.name}.styles.ts`
-    );
-  }
-
-  // Watch hooks directory
-  const hooksDir = path.join(SOURCE_DIR, "hooks");
-  try {
-    const hookFiles = await fs.readdir(hooksDir);
-    for (const file of hookFiles) {
-      await watchFile(path.join(hooksDir, file), `hooks/${file}`);
-    }
-  } catch (error) {
-    // Hooks directory might not exist
-  }
-
-  // Watch entry template
-  await watchFile(ENTRY_TEMPLATE_PATH, "component-entry-template.tsx");
-}
-
-// CLI
-const isWatch = process.argv.includes("--watch");
-
-if (isWatch) {
-  watch().catch((error) => {
-    console.error("Watch error:", error);
-    process.exit(1);
-  });
-} else {
-  buildAll().catch((error) => {
-    console.error("Build error:", error);
-    process.exit(1);
-  });
-}
+// CLI - Just run build
+buildAll().catch((error) => {
+  console.error("Build error:", error);
+  process.exit(1);
+});
