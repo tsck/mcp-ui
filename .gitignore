@@ -3,7 +3,6 @@ node_modules
 .pnpm-store
 package-lock.json
 
-# Generated bundles
-packages/mcp-ui-sdk/src/bundles/
+packages/mongodb-mcp-server/
 
-mongodb-mcp-server/
+.cursorrules/
