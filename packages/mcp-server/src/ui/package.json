@@ -4,8 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node build-vite.mjs --watch",
-    "build": "node build-vite.mjs",
+    "dev": "node build.mjs --watch",
+    "build": "node build.mjs",
     "lint": "eslint ."
   },
   "dependencies": {
