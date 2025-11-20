@@ -1,5 +1,0 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @mcp-poc/mcp-ui-app build",
-  "installCommand": "npm install -g pnpm && cd ../.. && pnpm install --no-frozen-lockfile"
-}

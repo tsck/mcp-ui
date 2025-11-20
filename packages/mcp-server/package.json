@@ -5,19 +5,23 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "start": "tsx src/index.ts",
-    "dev": "tsx watch src/index.ts"
+    "build:ui": "cd src/ui && pnpm run build",
+    "dev:ui": "cd src/ui && pnpm run dev",
+    "start": "pnpm run build:ui && tsx src/index.ts",
+    "dev": "concurrently \"pnpm run dev:ui\" \"tsx watch src/index.ts\""
   },
   "dependencies": {
-    "@mcp-poc/core": "workspace:*",
+    "@mcp-ui/server": "^5.12.0",
     "@modelcontextprotocol/sdk": "^1.20.0",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "cors": "^2.8.5",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/node": "^24.9.1",
+    "concurrently": "^9.1.0",
     "tsx": "^4.20.6"
   }
 }
