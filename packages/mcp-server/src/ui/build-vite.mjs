@@ -20,108 +20,6 @@ const ENTRY_TEMPLATE_PATH = path.join(
  * HTML wrapper template for embeddable UI components
  */
 function createHTMLWrapper(componentJS, componentName) {
-  // Browser-compatible Buffer polyfill
-  const bufferPolyfill = `
-    // Buffer polyfill for browser - must run BEFORE component code
-    (function() {
-      function BufferPolyfill(arg, encoding) {
-        if (typeof arg === 'number') {
-          return new Uint8Array(arg);
-        }
-        if (typeof arg === 'string') {
-          const encoder = new TextEncoder();
-          return encoder.encode(arg);
-        }
-        if (arg instanceof ArrayBuffer) {
-          return new Uint8Array(arg);
-        }
-        if (Array.isArray(arg)) {
-          return new Uint8Array(arg);
-        }
-        if (arg instanceof Uint8Array) {
-          return new Uint8Array(arg);
-        }
-        return new Uint8Array(0);
-      }
-      
-      BufferPolyfill.isBuffer = function(obj) {
-        return obj instanceof Uint8Array || (obj && obj.constructor && obj.constructor.name === 'Buffer');
-      };
-      
-      BufferPolyfill.from = function(data, encoding) {
-        if (typeof data === 'string') {
-          const encoder = new TextEncoder();
-          return encoder.encode(data);
-        }
-        if (data instanceof ArrayBuffer) {
-          return new Uint8Array(data);
-        }
-        if (Array.isArray(data)) {
-          return new Uint8Array(data);
-        }
-        if (data instanceof Uint8Array) {
-          return new Uint8Array(data);
-        }
-        return new Uint8Array(0);
-      };
-      
-      BufferPolyfill.alloc = function(size, fill) {
-        const buf = new Uint8Array(size);
-        if (fill !== undefined) {
-          buf.fill(fill);
-        }
-        return buf;
-      };
-      
-      BufferPolyfill.allocUnsafe = function(size) {
-        return new Uint8Array(size);
-      };
-      
-      BufferPolyfill.concat = function(list, length) {
-        if (list.length === 0) {
-          return new Uint8Array(0);
-        }
-        let totalLength = 0;
-        if (length === undefined) {
-          for (let i = 0; i < list.length; i++) {
-            totalLength += list[i].length;
-          }
-        } else {
-          totalLength = length;
-        }
-        const result = new Uint8Array(totalLength);
-        let pos = 0;
-        for (let i = 0; i < list.length; i++) {
-          const item = list[i];
-          result.set(item, pos);
-          pos += item.length;
-        }
-        return result;
-      };
-      
-      // Set Buffer globally
-      if (typeof globalThis !== 'undefined') globalThis.Buffer = BufferPolyfill;
-      if (typeof window !== 'undefined') window.Buffer = BufferPolyfill;
-      if (typeof global !== 'undefined') global.Buffer = BufferPolyfill;
-      if (typeof self !== 'undefined') self.Buffer = BufferPolyfill;
-      
-      // Stub process global
-      if (typeof process === 'undefined') {
-        const processStub = {
-          env: {},
-          version: '',
-          versions: {},
-          platform: 'browser',
-          nextTick: function(fn) { setTimeout(fn, 0); },
-          browser: true
-        };
-        if (typeof globalThis !== 'undefined') globalThis.process = processStub;
-        if (typeof window !== 'undefined') window.process = processStub;
-        if (typeof global !== 'undefined') global.process = processStub;
-      }
-    })();
-  `;
-
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -133,9 +31,6 @@ function createHTMLWrapper(componentJS, componentName) {
     body { font-family: system-ui, -apple-system, sans-serif; }
     #root { padding: 16px; }
   </style>
-  <script>
-    ${bufferPolyfill}
-  </script>
 </head>
 <body>
   <div id="root"></div>
